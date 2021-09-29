@@ -48,6 +48,8 @@ logger = badgrlog.BadgrLogger()
 
 
 class BadgeUserDetail(BaseEntityDetailView):
+    print("->BadgeUserDetail")
+
     model = BadgeUser
     v1_serializer_class = BadgeUserProfileSerializerV1
     v2_serializer_class = BadgeUserSerializerV2
@@ -144,6 +146,7 @@ class BadgeUserDetail(BaseEntityDetailView):
 
 
 class BadgeUserToken(BaseEntityDetailView):
+    print("->BadgeUserToken")
     model = BadgeUser
     permission_classes = (BadgeUserIsAuthenticatedUser,)
     v1_serializer_class = BadgeUserTokenSerializerV1
@@ -357,6 +360,8 @@ class BadgeUserForgotPassword(BaseUserRecoveryView):
 
 
 class BadgeUserEmailConfirm(BaseUserRecoveryView):
+    print("->BadgeUserEmailConfirm")
+
     permission_classes = (permissions.AllowAny,)
     v1_serializer_class = BaseSerializer
     v2_serializer_class = BaseSerializerV2
@@ -467,6 +472,8 @@ class BadgeUserEmailConfirm(BaseUserRecoveryView):
 
 
 class BadgeUserAccountConfirm(RedirectView):
+
+    print("->BadgeUserAccountConfirm")
     badgrapp = None
 
     def error_redirect_url(self):
@@ -504,6 +511,7 @@ class BadgeUserAccountConfirm(RedirectView):
         user.last_name = user_info.get('last_name', user.last_name)
         user.badgrapp = self.badgrapp
         user.marketing_opt_in = user_info.get('marketing_opt_in', user.marketing_opt_in)
+        user.token = user_info.get('token', user.token)
         user.agreed_terms_version = TermsVersion.cached.latest_version()
         user.email_verified = True
         if user_info.get('plaintext_password'):
@@ -519,6 +527,9 @@ class BadgeUserAccountConfirm(RedirectView):
 
 
 class AccessTokenList(BaseEntityListView):
+
+    print("->AccessTokenList")
+
     model = AccessTokenProxy
     v2_serializer_class = AccessTokenSerializerV2
     permission_classes = (permissions.IsAuthenticated, BadgrOAuthTokenHasScope)
@@ -536,6 +547,8 @@ class AccessTokenList(BaseEntityListView):
 
 
 class AccessTokenDetail(BaseEntityDetailView):
+    print("AccessTokenDetail")
+
     model = AccessTokenProxy
     v2_serializer_class = AccessTokenSerializerV2
     permission_classes = (permissions.IsAuthenticated, BadgrOAuthTokenHasScope)
@@ -571,6 +584,8 @@ class AccessTokenDetail(BaseEntityDetailView):
 
 
 class LatestTermsVersionDetail(BaseEntityDetailView):
+    print("->LatestTermsVersionDetail")
+
     model = TermsVersion
     v2_serializer_class = TermsVersionSerializerV2
     permission_classes = (permissions.AllowAny,)

@@ -78,7 +78,7 @@ class IssuerSerializerV1(OriginalJsonSerializerMixin, serializers.Serializer):
 
         # set badgrapp
         new_issuer.badgrapp = BadgrApp.objects.get_current(self.context.get('request', None))
-
+        print("-------------------------->IssuerSerializerV1 Create")
         new_issuer.save()
         return new_issuer
 
@@ -98,6 +98,7 @@ class IssuerSerializerV1(OriginalJsonSerializerMixin, serializers.Serializer):
         if not instance.badgrapp_id:
             instance.badgrapp = BadgrApp.objects.get_current(self.context.get('request', None))
 
+        print("-------------------------->IssuerSerializerV1 Update")
         instance.save(force_resize=force_image_resize)
         return instance
 
@@ -243,6 +244,7 @@ class BadgeClassSerializerV1(OriginalJsonSerializerMixin, serializers.Serializer
         instance.expires_amount = validated_data.get('expires_amount', None)
         instance.expires_duration = validated_data.get('expires_duration', None)
 
+        print("-------------------------->BadgeClassSerializerV1 update")
         instance.save(force_resize=force_image_resize)
 
         return instance
@@ -428,6 +430,9 @@ class BadgeInstanceSerializerV1(OriginalJsonSerializerMixin, serializers.Seriali
             if field_name in validated_data:
                 setattr(instance, field_name, validated_data.get(field_name))
         instance.rebake(save=False)
+        
+        print("-------------------------->BadgeInstanceSerializerV1 update")
+        
         instance.save()
 
         return instance

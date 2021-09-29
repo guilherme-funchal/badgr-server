@@ -45,6 +45,7 @@ class BadgeUserProfileSerializerV1(serializers.Serializer):
     password = serializers.CharField(style={'input_type': 'password'}, write_only=True, required=False, validators=[PasswordValidator()])
     slug = serializers.CharField(source='entity_id', read_only=True)
     agreed_terms_version = serializers.IntegerField(required=False)
+    token = serializers.BooleanField(required=False)
     marketing_opt_in = serializers.BooleanField(required=False)
     has_password_set = serializers.SerializerMethodField()
     source = serializers.CharField(write_only=True, required=False)
@@ -69,6 +70,7 @@ class BadgeUserProfileSerializerV1(serializers.Serializer):
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
             plaintext_password=validated_data['password'],
+            token=validated_data.get('token', False),
             marketing_opt_in=validated_data.get('marketing_opt_in', False),
             request=self.context.get('request', None),
             source=validated_data.get('source', ''),
@@ -100,6 +102,9 @@ class BadgeUserProfileSerializerV1(serializers.Serializer):
 
         if 'marketing_opt_in' in validated_data:
             user.marketing_opt_in = validated_data.get('marketing_opt_in')
+            
+        if 'token' in validated_data:
+            user.token = validated_data.get('token')    
 
         user.save()
         return user

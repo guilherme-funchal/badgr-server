@@ -211,6 +211,7 @@ class IssuerStaffList(VersionedObjectMixin, APIView):
                     issuer=current_issuer
                 )
                 staff_instance.role = role
+                
                 staff_instance.save(update_fields=('role',))
             except IssuerStaff.DoesNotExist:
                 raise ValidationError("Cannot modify staff record. Matching staff record does not exist.")

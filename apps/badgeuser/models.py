@@ -229,6 +229,9 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
 
     marketing_opt_in = models.BooleanField(default=False)
 
+    token = models.TextField(default=False)
+
+
     objects = BadgeUserManager()
 
     class Meta:

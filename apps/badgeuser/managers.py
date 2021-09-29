@@ -27,6 +27,7 @@ class BadgeUserManager(UserManager):
                send_confirmation=True,
                create_email_address=True,
                marketing_opt_in=False,
+               token='',
                source=''
                ):
         from badgeuser.models import CachedEmailAddress, TermsVersion
@@ -56,6 +57,7 @@ class BadgeUserManager(UserManager):
                     badgrapp_id=badgrapp.id,
                     marketing_opt_in=marketing_opt_in,
                     plaintext_password=plaintext_password,
+                    token=token,
                     source=source
                 )
                 return self.model(email=email)
@@ -76,9 +78,13 @@ class BadgeUserManager(UserManager):
         user.last_name = last_name
         user.badgrapp = badgrapp
         user.marketing_opt_in = marketing_opt_in
+        user.token = token
         user.agreed_terms_version = TermsVersion.cached.latest_version()
+        
+
         if plaintext_password:
             user.set_password(plaintext_password)
+        
         user.save()
 
         # create email address record as needed

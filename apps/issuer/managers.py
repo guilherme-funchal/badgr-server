@@ -1,6 +1,8 @@
 # encoding: utf-8
 
 
+from .aries_rest_issues import *
+
 import json
 import os
 import six
@@ -95,6 +97,7 @@ class BadgeClassManager(BaseOpenBadgeObjectManager):
     @transaction.atomic
     def create(self, **kwargs):
         obj = self.model(**kwargs)
+        print("=======================================>6")
         obj.save()
 
         if getattr(settings, 'BADGERANK_NOTIFY_ON_BADGECLASS_CREATE', True):
@@ -322,17 +325,21 @@ class BadgeInstanceManager(BaseOpenBadgeObjectManager):
         )
 
         with transaction.atomic():
+            print(new_instance.__dict__)
+
             new_instance.save()
 
             if evidence is not None:
+                print("=========================>Salva a evidencia")
                 from issuer.models import BadgeInstanceEvidence
                 for evidence_obj in evidence:
                     evidence_url = evidence_obj.get('evidence_url')
                     narrative = evidence_obj.get('narrative')
                     new_evidence = BadgeInstanceEvidence(badgeinstance=new_instance, evidence_url=evidence_url)
                     if narrative:
-                        new_evidence.narrative = narrative
+                        new_evidence.narrative = narrative    
                     new_evidence.save()
+                    
 
             if extensions is not None:
                 for name, ext in list(extensions.items()):
