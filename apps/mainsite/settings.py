@@ -251,7 +251,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'mail_admins': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'filters': [],
             'class': 'django.utils.log.AdminEmailHandler'
         },
@@ -266,15 +266,15 @@ LOGGING = {
     'loggers': {
         'django.request': {
             'handlers': ['mail_admins'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': True,
         },
 
         # Badgr.Events emits all badge related activity
         'Badgr.Events': {
             'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'level': 'INFO',
+            'propagate': False,
         }
 
     },

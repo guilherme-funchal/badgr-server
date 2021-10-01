@@ -124,7 +124,6 @@ class BadgeClassAdmin(DjangoObjectActions, ModelAdmin):
         force_resize = False
         if 'image' in form.changed_data:
             force_resize = True
-        print("=======================> BadgeClassAdmin")    
         obj.save(force_resize=force_resize)
 
     def badge_image(self, obj):
@@ -234,7 +233,6 @@ class BadgeInstanceAdmin(DjangoObjectActions, ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.rebake(save=False)
-        print("==================================>BadgeInstanceAdmin")
         super().save_model(request, obj, form, change)
 
 badgr_admin.register(BadgeInstance, BadgeInstanceAdmin)

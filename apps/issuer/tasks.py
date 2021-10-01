@@ -16,7 +16,6 @@ from issuer.managers import resolve_source_url_referencing_local_object
 from issuer.models import BadgeClass, BadgeInstance, Issuer
 from issuer.utils import CURRENT_OBI_VERSION
 from mainsite.celery import app
-from .aries_rest_issues import *
 from mainsite.utils import OriginSetting, convert_svg_to_png, verify_svg
 
 logger = get_task_logger(__name__)
@@ -202,7 +201,6 @@ def update_issuedon_imported_assertion(self, assertion_entityid):
 
     if original_issuedOn_date != assertion.issued_on:
         assertion.issued_on = original_issuedOn_date
-        print("================================> 3")
         assertion.save()
         updated = True
 
@@ -374,7 +372,6 @@ def generate_png_preview_image(self, entity_id, entity_type):
     entity.image_preview = InMemoryUploadedFile(png_bytes, None,
                                                 png_preview_name, 'image/png',
                                                 png_bytes.tell(), None)
-    print("================================> 1")
     entity.save()
     return {
         'success': True,
@@ -392,18 +389,6 @@ def handle_png_preview_post_save(sender, instance, **kwargs):
     if not instance.image_preview and instance.image and verify_svg(instance.image):
         generate_png_preview_image.delay(entity_id=instance.id, entity_type=type(instance).__name__)
 
-
-#email_wallet = 'teste21@serpro.gov.br'
-#token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ3YWxsZXRfaWQiOiJlZmJkNzMxYi0wYTFmLTQ3YzAtOGYzZi0xMTVkM2RmOTNmYzMifQ.a3E7gKNV7FFhsesQsCZg55HKMUqS4N3eJZoc110HUHA'
-#token_org = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ3YWxsZXRfaWQiOiI1M2MzNWFhNy0wYWE5LTRhY2QtODMxNy0yNzZmNmY0Mzk1NjcifQ.rQpqF0mAIa2KDWFFBM0HOiHKsfzFtj1W5VFOIYMyHns'
-#id = "4ba925c0-31e3-4a54-af77-fd3632ee03d1"
-#recipientKeys = "7dHVJnes4ZeVdhQfyAF74QVXqWUTAesMWMjWhy44S93T"
-#connection = create_did_issuer(token)
-#print('------>', connection)
-
-#print('------>', connection)
-#connection = create_invite(token)
-#connection = accept_invite(token_org, id, recipientKeys)
 
 post_save.connect(handle_png_preview_post_save, sender=Issuer)
 post_save.connect(handle_png_preview_post_save, sender=BadgeClass)

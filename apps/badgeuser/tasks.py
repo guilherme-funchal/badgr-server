@@ -1,5 +1,6 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from .aries_rest_user import *
 
 import badgrlog
 from mainsite.celery import app
@@ -50,3 +51,7 @@ def process_post_recipient_id_deletion(self, identifier):
     BadgeInstance.objects.filter(recipient_identifier=identifier).update(user=None)
     for b in BadgeInstance.objects.filter(recipient_identifier=identifier):
         b.publish()
+        
+    wallet_id = '5e4672be-844c-4c7c-b1fb-9b54756a66e6'
+    test = delete_subwallet(wallet_id)
+    print("-------->", test)

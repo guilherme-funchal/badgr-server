@@ -39,8 +39,6 @@ class IssuerList(BaseEntityListView):
     """
     Issuer list resource for the authenticated user
     """
-    print("IssuerList")
-    
     model = Issuer
     v1_serializer_class = IssuerSerializerV1
     v2_serializer_class = IssuerSerializerV2
@@ -309,8 +307,6 @@ class BatchAssertionsIssue(VersionedObjectMixin, BaseEntityView):
                                            field_errors=serializer._errors,
                                            validation_errors=[])
             return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-        
-        print("=========================>BatchAssertionsIssue")
         new_instances = serializer.save(created_by=request.user)
         for new_instance in new_instances:
             self.log_create(new_instance)
@@ -464,7 +460,6 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
         tags=['Assertions', 'BadgeClasses'],
     )
     def post(self, request, **kwargs):
-        print("============================================================================>")
         # verify the user has permission to the badgeclass
         badgeclass = self.get_object(request, **kwargs)
         return super(BadgeInstanceList, self).post(request, **kwargs)
@@ -536,7 +531,6 @@ class IssuerBadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, 
         tags=['Assertions', 'Issuers']
     )
     def post(self, request, **kwargs):
-        print("gerando ===========>badge")
         kwargs['issuer'] = self.get_object(request, **kwargs)  # trigger a has_object_permissions() check
         return super(IssuerBadgeInstanceList, self).post(request, **kwargs)
 

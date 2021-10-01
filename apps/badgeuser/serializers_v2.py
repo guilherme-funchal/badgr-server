@@ -50,6 +50,7 @@ class BadgeUserSerializerV2(DetailSerializerV2):
     hasAgreedToLatestTermsVersion = serializers.SerializerMethodField(read_only=True)
     marketingOptIn = serializers.BooleanField(source='marketing_opt_in', required=False)
     token = serializers.BooleanField(source='token', required=False)
+    did = serializers.BooleanField(source='did', required=False)
     badgrDomain = serializers.CharField(read_only=True, max_length=255, source='badgrapp')
     hasPasswordSet = serializers.SerializerMethodField('get_has_password_set')
     recipient = serializers.SerializerMethodField(read_only=True)

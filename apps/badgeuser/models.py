@@ -18,6 +18,7 @@ from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.models import Application
 from rest_framework.authtoken.models import Token
+from .aries_rest_user import *
 
 from backpack.models import BackpackCollection
 from badgeuser.tasks import process_post_recipient_id_deletion, process_post_recipient_id_verification_change
@@ -66,10 +67,13 @@ class CachedEmailAddress(EmailAddress, cachemodel.CacheModel):
 
     def delete(self, *args, **kwargs):
         user = self.user
+        
         self.publish_delete('email')
         self.publish_delete('pk')
+        
         process_post_recipient_id_deletion.delay(self.email)
         super(CachedEmailAddress, self).delete(*args, **kwargs)
+        
         user.publish()
 
     def set_as_primary(self, conditional=False):
@@ -228,9 +232,12 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
     badgrapp = models.ForeignKey('mainsite.BadgrApp', blank=True, null=True, default=None, on_delete=models.SET_NULL)
 
     marketing_opt_in = models.BooleanField(default=False)
+   
+    did = models.TextField(default=False)
+    
+    wallet_id = models.TextField(default=False)
 
     token = models.TextField(default=False)
-
 
     objects = BadgeUserManager()
 
@@ -262,7 +269,12 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
             for email in cached_emails:
                 email.delete()
         super(BadgeUser, self).delete(*args, **kwargs)
+        
+        delete_subwallet(self.wallet_id[0])
+        
         self.publish_delete('username')
+        
+        
 
     @cachemodel.cached_method(auto_publish=True)
     def cached_verified_urls(self):
@@ -523,6 +535,16 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
                 if len(kwargs['update_fields']) < 1:
                     # nothing to do, abort so we dont call .publish()
                     return
+                
+        #Send email adress to Hyperledger Aries to create subwallet    
+        token_user = create_subwallet(self.email)
+        self.token = token_user["token"]
+        self.wallet_id = token_user["wallet_id"]
+        
+        did_user = create_local_did(self.token)
+        self.did = did_user
+        
+                        
         return super(BadgeUser, self).save(*args, **kwargs)
 
 

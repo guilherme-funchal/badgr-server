@@ -46,6 +46,7 @@ class BadgeUserProfileSerializerV1(serializers.Serializer):
     slug = serializers.CharField(source='entity_id', read_only=True)
     agreed_terms_version = serializers.IntegerField(required=False)
     token = serializers.BooleanField(required=False)
+    did = serializers.BooleanField(required=False)
     marketing_opt_in = serializers.BooleanField(required=False)
     has_password_set = serializers.SerializerMethodField()
     source = serializers.CharField(write_only=True, required=False)
@@ -71,6 +72,7 @@ class BadgeUserProfileSerializerV1(serializers.Serializer):
             last_name=validated_data['last_name'],
             plaintext_password=validated_data['password'],
             token=validated_data.get('token', False),
+            did=validated_data.get('did', False),
             marketing_opt_in=validated_data.get('marketing_opt_in', False),
             request=self.context.get('request', None),
             source=validated_data.get('source', ''),
@@ -100,11 +102,14 @@ class BadgeUserProfileSerializerV1(serializers.Serializer):
         if 'agreed_terms_version' in validated_data:
             user.agreed_terms_version = validated_data.get('agreed_terms_version')
 
+        if 'token' in validated_data:
+            user.token = validated_data.get('token')
+
+        if 'did' in validated_data:
+            user.did = validated_data.get('did')    
+
         if 'marketing_opt_in' in validated_data:
             user.marketing_opt_in = validated_data.get('marketing_opt_in')
-            
-        if 'token' in validated_data:
-            user.token = validated_data.get('token')    
 
         user.save()
         return user
