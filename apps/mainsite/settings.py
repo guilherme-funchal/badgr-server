@@ -246,15 +246,22 @@ FIXTURE_DIRS = [
 #
 ##
 
+DEBUG_PROPAGATE_EXCEPTIONS = True
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        }
+    },
     'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': [],
-            'class': 'django.utils.log.AdminEmailHandler'
-        },
+#        'mail_admins': {
+#            'level': 'DEBUG',
+#            'filters': [],
+#            'class': 'logging.StreamHandler'
+#        },
 
         'console': {
             'level': 'DEBUG',
@@ -263,17 +270,22 @@ LOGGING = {
 
         },
     },
+    
     'loggers': {
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
         'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
+            'handlers': ['console'],
+            'level': 'DEBUG',
             'propagate': True,
         },
 
         # Badgr.Events emits all badge related activity
         'Badgr.Events': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propagate': False,
         }
 

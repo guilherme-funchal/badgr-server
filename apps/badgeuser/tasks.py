@@ -52,6 +52,3 @@ def process_post_recipient_id_deletion(self, identifier):
     for b in BadgeInstance.objects.filter(recipient_identifier=identifier):
         b.publish()
         
-    wallet_id = '5e4672be-844c-4c7c-b1fb-9b54756a66e6'
-    test = delete_subwallet(wallet_id)
-    print("-------->", test)

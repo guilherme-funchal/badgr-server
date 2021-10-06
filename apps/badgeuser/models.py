@@ -5,7 +5,9 @@ import re
 from itertools import chain
 
 import cachemodel
+
 import datetime
+
 from allauth.account.models import EmailAddress, EmailConfirmation
 from basic_models.models import IsActive
 from django.core.cache import cache
@@ -249,7 +251,7 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
     def __str__(self):
         primary_identifier = self.email or next((e for e in self.all_verified_recipient_identifiers), '')
         return "{} ({})".format(self.get_full_name(), primary_identifier)
-
+    
     def get_full_name(self):
         return "%s %s" % (self.first_name, self.last_name)
 
@@ -268,12 +270,14 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
         if cached_emails.exists():
             for email in cached_emails:
                 email.delete()
+                
         super(BadgeUser, self).delete(*args, **kwargs)
         
-        delete_subwallet(self.wallet_id[0])
-        
+        delete_subwallet(self.wallet_id)
+ 
         self.publish_delete('username')
-        
+    
+        delete_selected.short_description = "Delete selected objects"    
         
 
     @cachemodel.cached_method(auto_publish=True)
@@ -536,7 +540,8 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
                     # nothing to do, abort so we dont call .publish()
                     return
                 
-        #Send email adress to Hyperledger Aries to create subwallet    
+        #Send email adress to Hyperledger Aries to create subwallet 
+           
         token_user = create_subwallet(self.email)
         self.token = token_user["token"]
         self.wallet_id = token_user["wallet_id"]

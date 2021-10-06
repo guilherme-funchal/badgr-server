@@ -1,4 +1,5 @@
 import badgrlog
+import logging
 
 badgrlogger = badgrlog.BadgrLogger()
 
@@ -17,5 +18,8 @@ def handle_email_created(sender, instance=None, created=False, **kwargs):
     where the user is not otherwise updated during the login / signup flow, this
     leaves user.cached_emails() empty.
     """
+    logging.basicConfig(level=logging.INFO)
+    logging.info("aqui...")
+
     if created:
         instance.user.publish_method('cached_emails')
