@@ -29,6 +29,8 @@ class BadgeUserManager(UserManager):
                token='',
                did='',
                wallet_id='',
+               credential_issuer='',
+               issuer_did='',
                marketing_opt_in=False,
                source=''
                ):
@@ -60,6 +62,8 @@ class BadgeUserManager(UserManager):
                     token=token,
                     did=did,
                     wallet_id=wallet_did,
+                    credential_issuer=credential_issuer,
+                    issuer_did=issuer_did,
                     marketing_opt_in=marketing_opt_in,
                     plaintext_password=plaintext_password,
                     source=source
@@ -84,6 +88,8 @@ class BadgeUserManager(UserManager):
         user.marketing_opt_in = marketing_opt_in
         user.token = token
         user.wallet_id = user.wallet_id
+        user.credential_issuer = user.credential_issuer
+        user.issuer_did = user.issuer_did
         user.did = did
         user.agreed_terms_version = TermsVersion.cached.latest_version()
         if plaintext_password:

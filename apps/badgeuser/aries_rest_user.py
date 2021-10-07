@@ -108,3 +108,38 @@ def create_local_did(token_user):
         raise    
     finally:             
         return did
+    
+def create_issuer_did(token_user):
+        
+    json_model = {
+        "method": "key",
+        "options": {
+        "key_type": "bls12381g2"
+    }
+
+    }
+    
+    token_user = str(token_user)
+    
+    header = {'Authorization': 'Bearer ' + token_user}
+    
+    did = None
+    connection = None    
+      
+    try:
+        response = requests.post(
+            endpoint
+            + "/wallet/did/create",
+            json.dumps(json_model),
+            headers=header
+        )
+        
+        response.raise_for_status()
+        connection = response.json()
+        
+        did = connection["result"]["did"]
+                    
+    except:
+        raise    
+    finally:             
+        return did

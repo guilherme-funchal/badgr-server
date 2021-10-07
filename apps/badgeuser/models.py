@@ -239,6 +239,10 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
     
     wallet_id = models.TextField(default=False)
 
+    credential_issuer = models.BooleanField(default=False)
+    
+    issuer_did = models.TextField(default=False)
+    
     token = models.TextField(default=False)
 
     objects = BadgeUserManager()
@@ -275,9 +279,7 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
         
         delete_subwallet(self.wallet_id)
  
-        self.publish_delete('username')
-    
-        delete_selected.short_description = "Delete selected objects"    
+        self.publish_delete('username')  
         
 
     @cachemodel.cached_method(auto_publish=True)
@@ -540,16 +542,19 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
                     # nothing to do, abort so we dont call .publish()
                     return
                 
-        #Send email adress to Hyperledger Aries to create subwallet 
-           
-        token_user = create_subwallet(self.email)
-        self.token = token_user["token"]
-        self.wallet_id = token_user["wallet_id"]
+        #Create subwallet in Hyperledger Aries
         
-        did_user = create_local_did(self.token)
-        self.did = did_user
-        
-                        
+        if self.wallet_id == 'False':         
+                token_user = create_subwallet(self.email)
+                self.token = token_user["token"]
+                self.wallet_id = token_user["wallet_id"]
+                did_user = create_local_did(self.token)
+                self.did = did_user
+                
+        if self.credential_issuer == True:
+                issuer_did = create_issuer_did(self.token)
+                self.issuer_did = issuer_did
+                                
         return super(BadgeUser, self).save(*args, **kwargs)
 
 
