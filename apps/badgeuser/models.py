@@ -1,13 +1,9 @@
-
-
 import base64
 import re
 from itertools import chain
 
 import cachemodel
-
 import datetime
-
 from allauth.account.models import EmailAddress, EmailConfirmation
 from basic_models.models import IsActive
 from django.core.cache import cache
@@ -20,9 +16,7 @@ from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.models import Application
 from rest_framework.authtoken.models import Token
-from .aries_rest_user import *
 
-from backpack.models import BackpackCollection
 from badgeuser.tasks import process_post_recipient_id_deletion, process_post_recipient_id_verification_change
 from entity.models import BaseVersionedEntity
 from issuer.models import Issuer, BadgeInstance, BaseAuditedModel, BaseAuditedModelDeletedWithUser

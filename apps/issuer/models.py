@@ -23,6 +23,9 @@ from django.db import models, transaction
 from django.db.models import ProtectedError
 from json import loads as json_loads
 from json import dumps as json_dumps
+from .aries_rest_issuer import *
+
+
 
 from jsonfield import JSONField
 from openbadges_bakery import bake
@@ -40,6 +43,7 @@ from mainsite.utils import OriginSetting, generate_entity_uri
 
 from .utils import (add_obi_version_ifneeded, CURRENT_OBI_VERSION, generate_rebaked_filename,
                     generate_sha256_hashstring, get_obi_context, parse_original_datetime, UNVERSIONED_BAKED_VERSION)
+
 
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
@@ -894,6 +898,12 @@ class BadgeInstance(BaseAuditedModel,
         return not existing_identifier.verified
 
     def save(self, *args, **kwargs):
+        
+        #Hyperledger Aries integratiom        
+        recipient_identifier = self.recipient_identifier
+        created_by = self.created_by.email
+        create_connection(recipient_identifier, created_by)
+        
         if self.pk is None:
             # First check if recipient is in the blacklist
             if blacklist.api_query_is_in_blacklist(self.recipient_type, self.recipient_identifier):
