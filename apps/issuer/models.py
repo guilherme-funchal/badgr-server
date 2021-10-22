@@ -186,7 +186,7 @@ class Issuer(ResizeUploadedImage,
              BaseVersionedEntity,
              BaseOpenBadgeObjectModel):
     entity_class_name = 'Issuer'
-    COMPARABLE_PROPERTIES = ('badgrapp_id', 'description', 'email', 'entity_id', 'entity_version', 'name', 'pk',
+    COMPARABLE_PROPERTIES = ('badgrapp_id', 'description', 'issuer_did', 'email', 'entity_id', 'entity_version', 'name', 'pk',
                             'updated_at', 'url',)
 
     staff = models.ManyToManyField(AUTH_USER_MODEL, through='IssuerStaff')
@@ -201,6 +201,7 @@ class Issuer(ResizeUploadedImage,
     image = models.FileField(upload_to='uploads/issuers', blank=True, null=True)
     image_preview = models.FileField(upload_to='uploads/issuers', blank=True, null=True)
     description = models.TextField(blank=True, null=True, default=None)
+    issuer_did = models.TextField(max_length=254, blank=True, null=True, default=False)
     url = models.CharField(max_length=254, blank=True, null=True, default=None)
     email = models.CharField(max_length=254, blank=True, null=True, default=None)
     old_json = JSONField()
@@ -251,12 +252,21 @@ class Issuer(ResizeUploadedImage,
         return ret
 
     def save(self, *args, **kwargs):
+        from badgeuser.models import BadgeUser
+        
+        #Hyperledger Aries integration
+        if self.issuer_did == 'False':
+            token_user = BadgeUser.objects.get(email=self.email)
+            issuer_did = create_issuer_did(token_user.token)            
+            self.issuer_did = issuer_did
+        
         ret = super(Issuer, self).save(*args, **kwargs)
 
         # if no owner staff records exist, create one for created_by
         if len(self.owners) < 1 and self.created_by_id:
             IssuerStaff.objects.create(issuer=self, user=self.created_by, role=IssuerStaff.ROLE_OWNER)
-
+        
+        
         return ret
 
     def get_absolute_url(self):
@@ -353,6 +363,7 @@ class Issuer(ResizeUploadedImage,
             name=self.name,
             url=self.url,
             email=self.email,
+            issuer_did=self.issuer_did,
             description=self.description))
 
         image_url = self.image_url(public=True)
@@ -391,7 +402,7 @@ class Issuer(ResizeUploadedImage,
     def json(self):
         return self.get_json()
 
-    def get_filtered_json(self, excluded_fields=('@context', 'id', 'type', 'name', 'url', 'description', 'image', 'email')):
+    def get_filtered_json(self, excluded_fields=('@context', 'id', 'type', 'name', 'url', 'description', 'issuer_did','image', 'email')):
         return super(Issuer, self).get_filtered_json(excluded_fields=excluded_fields)
 
     @property
@@ -466,7 +477,7 @@ class BadgeClass(ResizeUploadedImage,
                  BaseVersionedEntity,
                  BaseOpenBadgeObjectModel):
     entity_class_name = 'BadgeClass'
-    COMPARABLE_PROPERTIES = ('criteria_text', 'criteria_url', 'description', 'entity_id', 'entity_version',
+    COMPARABLE_PROPERTIES = ('criteria_text', 'criteria_url', 'description', 'issuer_did', 'entity_id', 'entity_version',
                              'expires_amount', 'expires_duration', 'name', 'pk', 'slug', 'updated_at',)
 
     EXPIRES_DURATION_DAYS = 'days'
@@ -489,16 +500,18 @@ class BadgeClass(ResizeUploadedImage,
     name = models.CharField(max_length=255)
     image = models.FileField(upload_to='uploads/badges', blank=True)
     image_preview = models.FileField(upload_to='uploads/badges', blank=True, null=True)
+    issuer_did = models.TextField(max_length=255, blank=True, null=True, default=None)
     description = models.TextField(blank=True, null=True, default=None)
 
     criteria_url = models.CharField(max_length=254, blank=True, null=True, default=None)
+ 
     criteria_text = models.TextField(blank=True, null=True)
-
+    
     expires_amount = models.IntegerField(blank=True, null=True, default=None)
     expires_duration = models.CharField(max_length=254, choices=EXPIRES_DURATION_CHOICES, blank=True, null=True, default=None)
 
     old_json = JSONField()
-
+    
     objects = BadgeClassManager()
     cached = SlugOrJsonIdCacheModelManager(slug_kwarg_name='entity_id', slug_field_name='entity_id')
 
@@ -556,10 +569,18 @@ class BadgeClass(ResizeUploadedImage,
     @property
     def description_nonnull(self):
         return self.description if self.description else ""
+    
+    @property
+    def issuer_did_nonnull(self):
+        return self.issuer_did if self.issuer_did else ""
 
     @description_nonnull.setter
     def description_nonnull(self, value):
         self.description = value
+    
+    @issuer_did_nonnull.setter
+    def issuer_did_nonnull(self, value):
+        self.issuer_did = value    
 
     @property
     def owners(self):
@@ -680,6 +701,7 @@ class BadgeClass(ResizeUploadedImage,
             id=self.jsonld_id if use_canonical_id else add_obi_version_ifneeded(self.jsonld_id, obi_version),
             name=self.name,
             description=self.description_nonnull,
+            issuer_did=self.issuer_did_nonnull,
             issuer=self.cached_issuer.jsonld_id if use_canonical_id else add_obi_version_ifneeded(self.cached_issuer.jsonld_id, obi_version),
         ))
 
@@ -738,7 +760,7 @@ class BadgeClass(ResizeUploadedImage,
     def json(self):
         return self.get_json()
 
-    def get_filtered_json(self, excluded_fields=('@context', 'id', 'type', 'name', 'description', 'image', 'criteria', 'issuer')):
+    def get_filtered_json(self, excluded_fields=('@context', 'id', 'type', 'name', 'description', 'issuer_did', 'image', 'criteria', 'issuer')):
         return super(BadgeClass, self).get_filtered_json(excluded_fields=excluded_fields)
 
     @property
@@ -765,7 +787,7 @@ class BadgeInstance(BaseAuditedModel,
                              'recipient_identifier', 'recipient_type', 'revoked', 'revocation_reason', 'updated_at',)
 
     issued_on = models.DateTimeField(blank=False, null=False, default=timezone.now)
-
+    
     badgeclass = models.ForeignKey(BadgeClass, blank=False, null=False, on_delete=models.CASCADE, related_name='badgeinstances')
     issuer = models.ForeignKey(Issuer, blank=False, null=False,
                                on_delete=models.CASCADE)
@@ -788,7 +810,7 @@ class BadgeInstance(BaseAuditedModel,
 
     revoked = models.BooleanField(default=False, db_index=True)
     revocation_reason = models.CharField(max_length=255, blank=True, null=True, default=None)
-
+    cred_ex_id = models.CharField(max_length=255, blank=True, null=True, default=None)
     expires_at = models.DateTimeField(blank=True, null=True, default=None)
 
     ACCEPTANCE_UNACCEPTED = 'Unaccepted'
@@ -899,7 +921,7 @@ class BadgeInstance(BaseAuditedModel,
 
     def save(self, *args, **kwargs):
         
-        #Hyperledger Aries integratiom        
+        #Hyperledger Aries integration        
         recipient_identifier = self.recipient_identifier
         created_by = self.created_by.email
         create_connection(recipient_identifier, created_by)
@@ -938,7 +960,21 @@ class BadgeInstance(BaseAuditedModel,
 
         if self.revoked is False:
             self.revocation_reason = None
+            
+#Hyperledger Indy
 
+        recipient_identifier = self.recipient_identifier
+        
+        conn_id = get_connection_id(recipient_identifier, created_by)
+        
+        status = create_credential(conn_id, self)
+        
+        cred_ex_id = status["cred_ex_id"]
+        
+        self.cred_ex_id = cred_ex_id
+        
+#       record_id = get_record(recipient_identifier, cred_ex_id)
+        
         super(BadgeInstance, self).save(*args, **kwargs)
 
     def rebake(self, obi_version=CURRENT_OBI_VERSION, save=True):
@@ -1024,6 +1060,7 @@ class BadgeInstance(BaseAuditedModel,
                 'badge_name': self.badgeclass.name,
                 'badge_id': self.entity_id,
                 'badge_description': self.badgeclass.description,
+                'badge_issuer_did': self.badgeclass.issuer_did,
                 'help_email': getattr(settings, 'HELP_EMAIL', 'help@badgr.io'),
                 'issuer_name': re.sub(r'[^\w\s]+', '', self.issuer.name, 0, re.I),
                 'issuer_url': self.issuer.url,
@@ -1333,6 +1370,7 @@ class BadgeClassAlignment(OriginalJsonMixin, cachemodel.CacheModel):
     target_name = models.TextField()
     target_url = models.CharField(max_length=2083)
     target_description = models.TextField(blank=True, null=True, default=None)
+#   target_issuer_did = models.TextField(blank=True, null=True, default=None)
     target_framework = models.TextField(blank=True, null=True, default=None)
     target_code = models.TextField(blank=True, null=True, default=None)
 
@@ -1352,8 +1390,10 @@ class BadgeClassAlignment(OriginalJsonMixin, cachemodel.CacheModel):
 
         json['targetName'] = self.target_name
         json['targetUrl'] = self.target_url
+#        if self.target_issuer_did:
+#            json['targetIssuer_did'] = self.target_issuer_did
         if self.target_description:
-            json['targetDescription'] = self.target_description
+            json['targetDescription'] = self.target_description  
         if self.target_framework:
             json['targetFramework'] = self.target_framework
         if self.target_code:

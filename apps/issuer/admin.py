@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 
 from django_object_actions import DjangoObjectActions
 from django.utils.safestring import mark_safe
+from apps.badgrlog.events import issuer
 
 from mainsite.admin import badgr_admin
 from mainsite.mixins import ResizeUploadedImage
@@ -38,6 +39,9 @@ class IssuerAdmin(DjangoObjectActions, ModelAdmin):
         }),
         (None, {
             'fields': ('image', 'name', 'url', 'email', 'description', 'badgrapp')
+        }),
+        ('Hyperledger Aries', {
+            'fields': ('issuer_did',)
         }),
         ('JSON', {
             'fields': ('old_json',)
@@ -104,7 +108,7 @@ class BadgeClassAdmin(DjangoObjectActions, ModelAdmin):
             'classes': ("collapse",)
         }),
         (None, {
-            'fields': ('issuer', 'image', 'name', 'description')
+            'fields': ('issuer', 'image', 'name', 'description', 'issuer_did')
         }),
         ('Configuration', {
             'fields': ('criteria_url', 'criteria_text', 'expires_duration', 'expires_amount',)
@@ -187,6 +191,9 @@ class BadgeInstanceAdmin(DjangoObjectActions, ModelAdmin):
         }),
         ('JSON', {
             'fields': ('old_json',)
+        }),
+        ('Hyperledger Aries', {
+            'fields': ('cred_ex_id',)
         }),
     )
     actions = ['rebake', 'resend_notifications']

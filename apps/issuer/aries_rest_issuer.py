@@ -48,6 +48,7 @@ def create_connection(recipient_identifier, created_by):
     else:
         logging.basicConfig(level=logging.INFO)
         logging.info("User exist")      
+    
 
 def check_connection(created_by, token_recipient):
     #Check if connection exist betweeen issuer and recipient    
@@ -78,11 +79,10 @@ def check_connection(created_by, token_recipient):
         return connection
 
 
-
 def create_invite(created_by, token_creator):
     #Issuer create invite to connection    
     json_model = {
-        "label": created_by
+        "my_label": created_by
     }
     
     token_user = token_creator
@@ -109,6 +109,7 @@ def create_invite(created_by, token_creator):
         raise    
     finally:             
         return connection
+
 
 def accept_invite(created_by, token_recipient, id, recipientKeys):
     #Accept invite from issuer to recipient
@@ -145,3 +146,191 @@ def accept_invite(created_by, token_recipient, id, recipientKeys):
         raise    
     finally:             
         return did
+
+    
+def create_issuer_did(token_user):
+        
+    json_model = {
+        "method": "key",
+        "options": {
+        "key_type": "bls12381g2"
+    }
+
+    }
+    
+    token_user = str(token_user)
+    
+    header = {'Authorization': 'Bearer ' + token_user}
+    
+    did = None
+    connection = None    
+      
+    try:
+        response = requests.post(
+            endpoint
+            + "/wallet/did/create",
+            json.dumps(json_model),
+            headers=header
+        )
+        
+        response.raise_for_status()
+        connection = response.json()
+        
+        did = connection["result"]["did"]
+                    
+    except:
+        raise    
+    finally:             
+        return did
+    
+
+def get_connection_id(recipient_identifier, email_issuer):
+    #Check if connection exist betweeen issuer and recipient
+    
+    email = str(recipient_identifier)
+    created_by = str(email_issuer)
+    
+    from badgeuser.models import BadgeUser
+    token_issuer = BadgeUser.objects.get(email=created_by)  
+    
+    connection_id = None
+    
+    token = token_issuer.token
+    header = {'Authorization': 'Bearer ' + token}
+       
+    try:
+        response = requests.get(
+            endpoint
+            + "/connections?their_label=" + email,
+            headers=header
+        )
+        
+        response.raise_for_status()
+        
+        #Check if Connection exist in Hyperledger Aries
+        connection = response.json()
+        connection_id = connection['results'][0]['connection_id']
+                  
+    except:
+        raise    
+    finally:             
+        return connection_id    
+    
+
+def create_credential(conn_id, self):
+    
+    created_by = self.created_by.email
+    
+    from badgeuser.models import BadgeUser
+    issuer_user = BadgeUser.objects.get(email=created_by)
+    
+    issuancedate = str(self.issued_on)
+    badge_name = str(self.badgeclass.name)
+    issuer_email = str(issuer_user.email)
+    issuer_url = str(self.issuer.url)
+    recipient_email = str(self.recipient_identifier)
+    issuer_name = str(self.issuer.name)
+    issuer_image = str(self.issuer.image_preview.path)
+    narrative = str(self.narrative)
+    description = str(self.issuer.description)
+    issuer_did  = str(self.issuer.issuer_did)
+    badge_id =  str(self.entity_id)
+    badge_image = str(self.image.name)
+    recipient_name = str(self.recipient_user.first_name + " " + self.recipient_user.last_name)
+    token = str(issuer_user.token) 
+    header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/json'}
+    
+    connection = None
+
+    
+    json_model_rest = {
+        
+   "connection_id":conn_id,
+   "filter":{
+        "ld_proof":{
+			"options":{
+                "proofType":"BbsBlsSignature2020"
+            },
+        "credential":{
+            "@context":["https://www.w3.org/2018/credentials/v1","https://w3id.org/openbadges/v2" ], 
+            "@protected":False,
+            "issuanceDate":issuancedate,
+            "type": ["VerifiableCredential","PermanentResident", "Assertion"],
+            "issuer":issuer_did,
+			"credentialSubject":{},
+            "badge":{
+               "id":badge_id,
+               "type":"BadgeClass",
+               "name":badge_name,
+               "image":badge_image,
+               "description":description,
+               "criteria":{
+                  "narrative":narrative
+                },
+               "issuer":{
+                "type":"Profile",
+                "name":issuer_name,
+                "url":issuer_url,
+                "email":issuer_email,
+                "image":issuer_image
+               }
+            },
+            "recipient":{
+                "name": recipient_name,
+                "hashed":False,
+                "identity":recipient_email,
+                "type":"email"
+            }
+         }
+      }
+   }
+} 
+    
+        
+    
+    try:
+        response = requests.post(
+            endpoint
+            + "/issue-credential-2.0/send-offer",
+            json.dumps(json_model_rest),
+            headers=header
+        )
+        
+        response.raise_for_status()
+        connection = response.json()
+                    
+    except:
+        raise    
+    finally:             
+        return connection
+    
+
+def get_record(recipient_identifier, cred_ex_id):
+    #Check if connection exist betweeen issuer and recipient
+    
+    recipient_identifier = str(recipient_identifier)
+    
+    from badgeuser.models import BadgeUser
+    token_issuer = BadgeUser.objects.get(email=recipient_identifier)  
+    
+    token = token_issuer.token
+    
+    connection=None
+
+    header = {'Authorization': 'Bearer ' + token}
+       
+    try:
+        response = requests.get(
+            endpoint
+            + "/issue-credential-2.0/records/" + cred_ex_id,
+            headers=header
+        )
+        
+        response.raise_for_status()
+        connection = response.json()
+                  
+    except:
+        raise    
+    finally:             
+        return connection   
+    
