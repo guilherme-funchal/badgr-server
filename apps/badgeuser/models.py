@@ -23,7 +23,7 @@ from issuer.models import Issuer, BadgeInstance, BaseAuditedModel, BaseAuditedMo
 from badgeuser.managers import CachedEmailAddressManager, BadgeUserManager
 from badgeuser.utils import generate_badgr_username
 from mainsite.models import ApplicationInfo
-
+from backpack.models import BackpackCollection
 
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
@@ -229,15 +229,15 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
 
     marketing_opt_in = models.BooleanField(default=False)
    
-    did = models.TextField(default=False)
+    did = models.TextField(max_length=255, blank=True, null=True, default=False)
     
-    wallet_id = models.TextField(default=False)
+    wallet_id = models.CharField(max_length=255, blank=True, null=True, default=False)
 
-    credential_issuer = models.BooleanField(default=False)
+#   credential_issuer = models.BooleanField(default=False)
     
-    issuer_did = models.TextField(default=False)
+#   issuer_did = models.TextField(default=False)
     
-    token = models.TextField(default=False)
+    token = models.TextField(max_length=255, blank=True, null=True, default=False)
 
     objects = BadgeUserManager()
 
@@ -545,9 +545,9 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
                 did_user = create_local_did(self.token)
                 self.did = did_user
                 
-        if self.credential_issuer == True:
-                issuer_did = create_issuer_did(self.token)
-                self.issuer_did = issuer_did
+#        if self.credential_issuer == True:
+#                issuer_did = create_issuer_did(self.token)
+#                self.issuer_did = issuer_did
                                 
         return super(BadgeUser, self).save(*args, **kwargs)
 

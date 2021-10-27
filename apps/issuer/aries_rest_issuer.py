@@ -226,6 +226,7 @@ def create_credential(conn_id, self):
     
     issuancedate = str(self.issued_on)
     badge_name = str(self.badgeclass.name)
+    badge_class = str(self.badgeclass.entity_id)
     issuer_email = str(issuer_user.email)
     issuer_url = str(self.issuer.url)
     recipient_email = str(self.recipient_identifier)
@@ -234,12 +235,13 @@ def create_credential(conn_id, self):
     narrative = str(self.narrative)
     description = str(self.issuer.description)
     issuer_did  = str(self.issuer.issuer_did)
+    issuer_id = str(self.issuer.entity_id)
     badge_id =  str(self.entity_id)
     badge_image = str(self.image.name)
     recipient_name = str(self.recipient_user.first_name + " " + self.recipient_user.last_name)
     token = str(issuer_user.token) 
     header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/json'}
-    
+    creator = str(self.created_by)
     connection = None
 
     
@@ -261,6 +263,7 @@ def create_credential(conn_id, self):
             "badge":{
                "id":badge_id,
                "type":"BadgeClass",
+               "BadgeClass": badge_class,
                "name":badge_name,
                "image":badge_image,
                "description":description,
@@ -269,7 +272,9 @@ def create_credential(conn_id, self):
                 },
                "issuer":{
                 "type":"Profile",
+                "id": issuer_id,
                 "name":issuer_name,
+                "creator":creator,
                 "url":issuer_url,
                 "email":issuer_email,
                 "image":issuer_image

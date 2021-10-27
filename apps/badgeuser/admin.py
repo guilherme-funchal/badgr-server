@@ -51,7 +51,8 @@ class BadgeUserAdmin(DjangoObjectActions, ModelAdmin):
     fieldsets = (
         ('Metadata', {'fields': ('entity_id', 'username', 'date_joined',), 'classes': ('collapse',)}),
         (None, {'fields': ('email', 'first_name', 'last_name', 'badgrapp', 'agreed_terms_version', 'marketing_opt_in')}),
-        ('Hyperledger Aries', {'fields': ('token', 'did', 'wallet_id', 'credential_issuer', 'issuer_did')}),
+#       ('Hyperledger Aries', {'fields': ('token', 'did', 'wallet_id', 'credential_issuer', 'issuer_did')}),
+        ('Hyperledger Aries', {'fields': ('token', 'did', 'wallet_id')}),
         ('Access', {'fields': ('is_active', 'is_staff', 'is_superuser', 'has_usable_password', 'password', 'login_backoff')}),
         ('Permissions', {'fields': ('groups', 'user_permissions')}),
     )
