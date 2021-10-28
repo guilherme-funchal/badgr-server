@@ -32,6 +32,7 @@ class BadgeUserManager(UserManager):
 #              credential_issuer='',
 #              issuer_did='',
                marketing_opt_in=False,
+               is_staff=False,
                source=''
                ):
         from badgeuser.models import CachedEmailAddress, TermsVersion
@@ -65,6 +66,7 @@ class BadgeUserManager(UserManager):
 #                   credential_issuer=credential_issuer,
 #                   issuer_did=issuer_did,
                     marketing_opt_in=marketing_opt_in,
+                    is_staff=is_staff,
                     plaintext_password=plaintext_password,
                     source=source
                 )
@@ -86,6 +88,7 @@ class BadgeUserManager(UserManager):
         user.last_name = last_name
         user.badgrapp = badgrapp
         user.marketing_opt_in = marketing_opt_in
+        user.is_staff = is_staff
         user.token = token
         user.wallet_id = user.wallet_id
 #       user.credential_issuer = user.credential_issuer

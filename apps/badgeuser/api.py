@@ -504,6 +504,7 @@ class BadgeUserAccountConfirm(RedirectView):
         user.last_name = user_info.get('last_name', user.last_name)
         user.badgrapp = self.badgrapp
         user.marketing_opt_in = user_info.get('marketing_opt_in', user.marketing_opt_in)
+        user.is_staff = user_info.get('is_staff', user.is_staff)
         user.agreed_terms_version = TermsVersion.cached.latest_version()
         user.email_verified = True
         if user_info.get('plaintext_password'):

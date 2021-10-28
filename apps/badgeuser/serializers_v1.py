@@ -48,6 +48,7 @@ class BadgeUserProfileSerializerV1(serializers.Serializer):
     token = serializers.BooleanField(required=False)
     did = serializers.BooleanField(required=False)
     marketing_opt_in = serializers.BooleanField(required=False)
+    is_staff = serializers.BooleanField(required=False)
     has_password_set = serializers.SerializerMethodField()
     source = serializers.CharField(write_only=True, required=False)
 
@@ -74,6 +75,7 @@ class BadgeUserProfileSerializerV1(serializers.Serializer):
             token=validated_data.get('token', False),
             did=validated_data.get('did', False),
             marketing_opt_in=validated_data.get('marketing_opt_in', False),
+            is_staff=validated_data.get('is_staff', False),
             request=self.context.get('request', None),
             source=validated_data.get('source', ''),
         )
@@ -110,6 +112,9 @@ class BadgeUserProfileSerializerV1(serializers.Serializer):
 
         if 'marketing_opt_in' in validated_data:
             user.marketing_opt_in = validated_data.get('marketing_opt_in')
+        
+        if 'is_staff' in validated_data:
+            user.is_staff = validated_data.get('is_staff')
 
         user.save()
         return user
