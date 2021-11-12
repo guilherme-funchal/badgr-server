@@ -1,4 +1,6 @@
 from collections import OrderedDict
+from collections import namedtuple
+from .aries_rest_issuer import *
 
 import datetime
 
@@ -247,7 +249,6 @@ class BadgeClassDetail(BaseEntityDetailView):
     def put(self, request, **kwargs):
         return super(BadgeClassDetail, self).put(request, **kwargs)
 
-
 class BatchAssertionsIssue(VersionedObjectMixin, BaseEntityView):
     model = BadgeClass  # used by .get_object()
     permission_classes = [
@@ -403,7 +404,9 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
 
     def get_queryset(self, request=None, **kwargs):
         badgeclass = self.get_object(request, **kwargs)
+       
         queryset = BadgeInstance.objects.filter(badgeclass=badgeclass)
+
         recipients = request.query_params.getlist('recipient', None)
         if recipients:
             queryset = queryset.filter(recipient_identifier__in=recipients)
@@ -411,9 +414,10 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
             queryset = queryset.filter(
                 Q(expires_at__gte=datetime.datetime.now()) | Q(expires_at__isnull=True))
         if request.query_params.get('include_revoked', '').lower() not in ['1', 'true']:
-            queryset = queryset.filter(revoked=False)
-
+            queryset = queryset.filter(revoked=False)     
+               
         return queryset
+    
 
     def get_context_data(self, **kwargs):
         context = super(BadgeInstanceList, self).get_context_data(**kwargs)
@@ -453,7 +457,14 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
     def get(self, request, **kwargs):
         # verify the user has permission to the badgeclass
         badgeclass = self.get_object(request, **kwargs)
-        return super(BadgeInstanceList, self).get(request, **kwargs)
+        
+        issuer_email = self.request._user.email
+        val = get_badge_list(issuer_email, badgeclass)
+        
+        
+        val = super(BadgeInstanceList, self).get(request, **kwargs)
+        return val
+
 
     @apispec_post_operation('Assertion',
         summary="Issue an Assertion to a single recipient",

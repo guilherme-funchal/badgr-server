@@ -26,7 +26,6 @@ from json import dumps as json_dumps
 from .aries_rest_issuer import *
 
 
-
 from jsonfield import JSONField
 from openbadges_bakery import bake
 from django.utils import timezone
@@ -784,7 +783,7 @@ class BadgeInstance(BaseAuditedModel,
                     BaseOpenBadgeObjectModel):
     entity_class_name = 'Assertion'
     COMPARABLE_PROPERTIES = ('badgeclass_id', 'entity_id', 'entity_version', 'issued_on', 'pk', 'narrative',
-                             'recipient_identifier', 'recipient_type', 'revoked', 'revocation_reason', 'updated_at',)
+                             'recipient_identifier', 'recipient_type', 'revoked', 'revocation_reason', 'updated_at', 'cred_ex_id',)
 
     issued_on = models.DateTimeField(blank=False, null=False, default=timezone.now)
     
@@ -1011,6 +1010,8 @@ class BadgeInstance(BaseAuditedModel,
         badgeclass = self.badgeclass
 
         super(BadgeInstance, self).delete(*args, **kwargs)
+        
+        #Hyperledger implement remove in wallet
         badgeclass.publish()
         if self.recipient_user:
             self.recipient_user.publish()

@@ -322,7 +322,7 @@ def get_record(recipient_identifier, cred_ex_id):
     
     connection=None
 
-    header = {'Authorization': 'Bearer ' + token}
+    header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/json'}
        
     try:
         response = requests.get(
@@ -338,4 +338,81 @@ def get_record(recipient_identifier, cred_ex_id):
         raise    
     finally:             
         return connection   
+    
+
+def get_badge_list(issuer_email, badgeclass):
+    
+    from django.db import connections,transaction
+    
+    cursor = connections['sqlite'].cursor()
+    
+    #Check if connection exist betweeen issuer and recipient
+    connection = None
+    badges = None
+    
+    issuer_email = str(issuer_email)
+    
+    from badgeuser.models import BadgeUser
+    from issuer.models import BadgeInstance
+    
+       
+    token_issuer = BadgeUser.objects.get(email=issuer_email)  
+    
+    teste = BadgeInstance.objects.using('sqlite').all().count()
+    
+    token = token_issuer.token
+    
+    header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/ld+json'}
+    
+
+    try:
+        response = requests.get(
+            endpoint
+            + "/issue-credential-2.0/records",
+            headers=header
+        )
+        
+        response.raise_for_status()
+        connection = response.json()
+        
+        created_at=connection['results'][0]['cred_ex_record']['created_at'] 
+        old_json=''
+        slug=''
+        image=connection['results'][0]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['image']
+        revoked='False'
+        revocation_reason='None'
+        created_by_id='1'
+        issuer_id='1'
+        recipient_identifier=connection['results'][0]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['recipient']['identity']
+        acceptance=''
+        salt=''
+        narrative=connection['results'][0]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['criteria']['narrative']
+        entity_id='1'
+        entity_version='1.0'
+        source=''
+        source_url=''
+        original_json=''
+        issued_on='None'
+        recipient_type='email'
+        updated_at='None'
+        updated_by_id= 'None'
+        hashed='False'
+        expires_at='None'
+        user_id='None'
+        cred_ex_id=connection['results'][0]['cred_ex_record']['cred_ex_id']
+
+        
+        query = "INSERT INTO issuer_badgeinstance (created_at, old_json, slug, image, revoked, revocation_reason, badgeclass_id, created_by_id, issuer_id, recipient_identifier, acceptance, salt, narrative, entity_id, entity_version, source, source_url, original_json, issued_on, recipient_type, updated_at, updated_by_id, hashed, expires_at, user_id, cred_ex_id) values('"+created_at+"','"+old_json+"','"+slug+"','"+image+"','"+revoked+"','"+revocation_reason+"','"+badgeclass+"','"+created_by_id+"','"+issuer_id+"','"+recipient_identifier+"','"+acceptance+"','"+salt+"','"+narrative+"','"+entity_id+"','"+entity_version+"','"+source+"','"+source_url+"','"+original_json+"','"+issued_on+"','"+recipient_type+"','"+updated_at+"','"+updated_by_id+"','"+hashed+"','"+expires_at+"','"+user_id+"','"+cred_ex_id+"')"
+        
+        cursor.execute(query)
+        transaction.commit()
+        
+        # teste = BadgeInstance.objects.using('sqlite').raw(query)
+        
+    except:
+        raise    
+    finally:             
+        return badges
+    
+    
     
