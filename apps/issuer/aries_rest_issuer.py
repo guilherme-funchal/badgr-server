@@ -227,6 +227,7 @@ def create_credential(conn_id, self):
     issuancedate = str(self.issued_on)
     badge_name = str(self.badgeclass.name)
     badge_class = str(self.badgeclass.entity_id)
+    badge_class_id = str(self.badgeclass.id)
     issuer_email = str(issuer_user.email)
     issuer_url = str(self.issuer.url)
     recipient_email = str(self.recipient_identifier)
@@ -243,7 +244,20 @@ def create_credential(conn_id, self):
     header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/json'}
     creator = str(self.created_by)
     connection = None
-
+    created_by_id = self.created_by_id
+    salt = self.salt
+    entity_id = self.entity_id
+    entity_version = self.entity_version
+    original_json = self.original_json
+    issued_on = issuancedate
+    recipient_type = self.recipient_type
+    hashed = self.hashed
+    old_json = self.old_json
+    slug = self.slug
+    source_url = self.source_url
+    user_id = self.user_id
+    source = self.source
+    expires_at = self.expires_at
     
     json_model_rest = {
         
@@ -264,16 +278,31 @@ def create_credential(conn_id, self):
                "id":badge_id,
                "type":"BadgeClass",
                "BadgeClass": badge_class,
+               "badge_class_id": badge_class_id,
                "name":badge_name,
                "image":badge_image,
                "description":description,
+               "salt":salt,
+               "entity_id":entity_id,
+               "entity_version":entity_version,
+               "original_json":original_json,
+               "issued_on":issued_on,
+               "recipient_type":recipient_type,
+               "hashed":hashed,
+               "old_json":old_json,
+               "slug":slug,
+               "source_url":source_url,
+               "issue_on": issuancedate,
+               "source":source,
+               "expires_at":expires_at,
                "criteria":{
                   "narrative":narrative
-                },
+                },             
                "issuer":{
                 "type":"Profile",
-                "id": issuer_id,
+                "id":issuer_id,
                 "name":issuer_name,
+                "created_by_id":created_by_id,
                 "creator":creator,
                 "url":issuer_url,
                 "email":issuer_email,
@@ -284,7 +313,8 @@ def create_credential(conn_id, self):
                 "name": recipient_name,
                 "hashed":False,
                 "identity":recipient_email,
-                "type":"email"
+                "type":"email",
+                "user_id": user_id
             }
          }
       }
@@ -340,9 +370,13 @@ def get_record(recipient_identifier, cred_ex_id):
         return connection   
     
 
-def get_badge_list(issuer_email, badgeclass):
+def get_badge_list(issuer_email, badgeclass, badgeclass_id):
     
     from django.db import connections,transaction
+    from badgeuser.models import BadgeUser
+    from issuer.models import BadgeInstance
+    
+    id = badgeclass_id
     
     cursor = connections['sqlite'].cursor()
     
@@ -351,14 +385,13 @@ def get_badge_list(issuer_email, badgeclass):
     badges = None
     
     issuer_email = str(issuer_email)
-    
-    from badgeuser.models import BadgeUser
-    from issuer.models import BadgeInstance
-    
-       
+         
     token_issuer = BadgeUser.objects.get(email=issuer_email)  
     
-    teste = BadgeInstance.objects.using('sqlite').all().count()
+#    clean = BadgeInstance.objects.using('sqlite')
+    
+    clean = BadgeInstance.objects.using('sqlite').filter(badgeclass_id=id).count()
+
     
     token = token_issuer.token
     
@@ -375,37 +408,44 @@ def get_badge_list(issuer_email, badgeclass):
         response.raise_for_status()
         connection = response.json()
         
-        created_at=connection['results'][0]['cred_ex_record']['created_at'] 
-        old_json=''
-        slug=''
-        image=connection['results'][0]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['image']
-        revoked='False'
-        revocation_reason='None'
-        created_by_id='1'
-        issuer_id='1'
-        recipient_identifier=connection['results'][0]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['recipient']['identity']
-        acceptance=''
-        salt=''
-        narrative=connection['results'][0]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['criteria']['narrative']
-        entity_id='1'
-        entity_version='1.0'
-        source=''
-        source_url=''
-        original_json=''
-        issued_on='None'
-        recipient_type='email'
-        updated_at='None'
-        updated_by_id= 'None'
-        hashed='False'
-        expires_at='None'
-        user_id='None'
-        cred_ex_id=connection['results'][0]['cred_ex_record']['cred_ex_id']
+        i = 0
+        
+        for conn in connection['results']:
+            created_at=connection['results'][i]['cred_ex_record']['created_at'] 
+            old_json=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['old_json'])
+            slug=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['slug'])
+            image=connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['image']
+            revoked='False'
+            revocation_reason='None'
+            badgeclass_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_proposal']['ld_proof']['credential']['badge']['badge_class_id'])
+            created_by_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['issuer']['created_by_id'])
+            issuer_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['issuer']['created_by_id'])
+            recipient_identifier=connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['recipient']['identity']
+            acceptance='Accepted'
+            salt=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['salt'])
+            narrative=connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['criteria']['narrative']
+            entity_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['entity_id'])
+            entity_version=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['entity_version'])
+            source=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['source'])
+            source_url=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['source_url'])
+            original_json=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['original_json'])
+            issued_on=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['issued_on'])
+            recipient_type=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['recipient_type'])
+            updated_at=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['issued_on'])
+            updated_by_id= 'None'
+            hashed=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['hashed'])
+            expires_at='None'
+            user_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['recipient']['user_id'])
+            cred_ex_id=connection['results'][i]['cred_ex_record']['cred_ex_id']
+        
+            query = "INSERT INTO issuer_badgeinstance (created_at, old_json, slug, image, revoked, revocation_reason, badgeclass_id, created_by_id, issuer_id, recipient_identifier, acceptance, salt, narrative, entity_id, entity_version, source, source_url, original_json, issued_on, recipient_type, updated_at, updated_by_id, hashed, expires_at, user_id, cred_ex_id) values('"+created_at+"','"+old_json+"','"+slug+"','"+image+"','"+revoked+"','"+revocation_reason+"','"+badgeclass_id+"','"+created_by_id+"','"+issuer_id+"','"+recipient_identifier+"','"+acceptance+"','"+salt+"','"+narrative+"','"+entity_id+"','"+entity_version+"','"+source+"','','"+original_json+"','"+issued_on+"','"+recipient_type+"','"+updated_at+"','"+updated_by_id+"','"+hashed+"','"+expires_at+"','"+user_id+"','"+cred_ex_id+"')"
+                
+            cursor.execute(query)
+            transaction.commit()
 
+            i += 1
         
-        query = "INSERT INTO issuer_badgeinstance (created_at, old_json, slug, image, revoked, revocation_reason, badgeclass_id, created_by_id, issuer_id, recipient_identifier, acceptance, salt, narrative, entity_id, entity_version, source, source_url, original_json, issued_on, recipient_type, updated_at, updated_by_id, hashed, expires_at, user_id, cred_ex_id) values('"+created_at+"','"+old_json+"','"+slug+"','"+image+"','"+revoked+"','"+revocation_reason+"','"+badgeclass+"','"+created_by_id+"','"+issuer_id+"','"+recipient_identifier+"','"+acceptance+"','"+salt+"','"+narrative+"','"+entity_id+"','"+entity_version+"','"+source+"','"+source_url+"','"+original_json+"','"+issued_on+"','"+recipient_type+"','"+updated_at+"','"+updated_by_id+"','"+hashed+"','"+expires_at+"','"+user_id+"','"+cred_ex_id+"')"
-        
-        cursor.execute(query)
-        transaction.commit()
+        tmp = i
         
         # teste = BadgeInstance.objects.using('sqlite').raw(query)
         

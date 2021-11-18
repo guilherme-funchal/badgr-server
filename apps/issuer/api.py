@@ -458,9 +458,9 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
         # verify the user has permission to the badgeclass
         badgeclass = self.get_object(request, **kwargs)
         
+        badgeclass_id = badgeclass.id
         issuer_email = self.request._user.email
-        val = get_badge_list(issuer_email, badgeclass)
-        
+        val = get_badge_list(issuer_email, badgeclass, badgeclass_id)
         
         val = super(BadgeInstanceList, self).get(request, **kwargs)
         return val

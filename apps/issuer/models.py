@@ -971,7 +971,7 @@ class BadgeInstance(BaseAuditedModel,
             cred_ex_id = status["cred_ex_id"]
             self.cred_ex_id = cred_ex_id
         
-#       record_id = get_record(recipient_identifier, cred_ex_id)
+        record_id = get_record(recipient_identifier, cred_ex_id)
         
         super(BadgeInstance, self).save(*args, **kwargs)
 
