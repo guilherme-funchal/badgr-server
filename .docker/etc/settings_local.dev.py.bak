@@ -151,12 +151,12 @@ LOGGING = {
 }
 
 REST_ARIES = {
-    'HOST' : "http://161.148.151.46",
+    'HOST' : "",
     'PORT'  : "8021", 
     'WALLET_PREFIX' : "credencial-serv1",
     'WALLET_WEBHOOK_URLS' : "http://localhost:8022/webhooks",
     'WALLET_PASS' : "MySecretKey123",
-    'LEDGER_HOST' : "161.148.151.57",
+    'LEDGER_HOST' : "",
     'LEDGER_PORT' : "9000",
     'SERVICEENDPOINT' : "http://192.168.2.17:8020"
 }
