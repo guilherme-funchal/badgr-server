@@ -207,5 +207,5 @@ class UncachedPaginatedViewMixin(object):
             page = self.paginator.paginate_queryset(queryset, request=request)
         else:
             page = list(queryset)
-
+        
         return page

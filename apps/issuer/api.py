@@ -457,7 +457,8 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
     def get(self, request, **kwargs):
         # verify the user has permission to the badgeclass
         badgeclass = self.get_object(request, **kwargs)
-        
+    
+    # Get list of badges from Hyperledger Aries and cache in sqlite database    
         badgeclass_id = badgeclass.id
         issuer_email = self.request._user.email
         val = get_badge_list(issuer_email, badgeclass, badgeclass_id)

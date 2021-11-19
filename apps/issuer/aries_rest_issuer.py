@@ -17,7 +17,8 @@ import requests
 from django.conf import settings
 
 
-#From ./.docker/etc/settings_local.dev.py
+# load parameters from ./.docker/etc/settings_local.dev.py
+
 host = settings.REST_ARIES['HOST']
 port = settings.REST_ARIES['PORT']
 wallet_prefix = settings.REST_ARIES['WALLET_PREFIX']
@@ -29,7 +30,8 @@ endpoint = host + ":" + port
 
 
 def create_connection(recipient_identifier, created_by): 
-    #Create connection betweeen issuer and recipient
+#   This function create connecions in Hyperledger Aries between  users
+
     from badgeuser.models import BadgeUser
     token_recipient = BadgeUser.objects.get(email=recipient_identifier)
     token_creator = BadgeUser.objects.get(email=created_by)
@@ -51,7 +53,8 @@ def create_connection(recipient_identifier, created_by):
     
 
 def check_connection(created_by, token_recipient):
-    #Check if connection exist betweeen issuer and recipient    
+#   This function check connecions in Hyperledger Aries between  users
+    
     created_by = str(created_by)
     
     token_user = token_recipient
@@ -80,7 +83,8 @@ def check_connection(created_by, token_recipient):
 
 
 def create_invite(created_by, token_creator):
-    #Issuer create invite to connection    
+#   This function create invitation in Hyperledger Aries between to connect users
+   
     json_model = {
         "my_label": created_by
     }
@@ -112,7 +116,8 @@ def create_invite(created_by, token_creator):
 
 
 def accept_invite(created_by, token_recipient, id, recipientKeys):
-    #Accept invite from issuer to recipient
+#   This function create connections in Hyperledger Aries between users from invites 
+
     service_endpoint = settings.REST_ARIES['SERVICEENDPOINT']
     created_by = str(created_by)
      
@@ -149,7 +154,8 @@ def accept_invite(created_by, token_recipient, id, recipientKeys):
 
     
 def create_issuer_did(token_user):
-        
+#   This function create issuer_did in Hyperledger Aries from token_user 
+       
     json_model = {
         "method": "key",
         "options": {
@@ -185,7 +191,7 @@ def create_issuer_did(token_user):
     
 
 def get_connection_id(recipient_identifier, email_issuer):
-    #Check if connection exist betweeen issuer and recipient
+#   This function get connection_id from Hyperledger Aries to Badge server
     
     email = str(recipient_identifier)
     created_by = str(email_issuer)
@@ -218,7 +224,8 @@ def get_connection_id(recipient_identifier, email_issuer):
     
 
 def create_credential(conn_id, self):
-    
+#   This function get credential in Json-ld format in Hyperledger Aries from Badge server
+   
     created_by = self.created_by.email
     
     from badgeuser.models import BadgeUser
@@ -260,6 +267,8 @@ def create_credential(conn_id, self):
     expires_at = self.expires_at
     
     json_model_rest = {
+ 
+#   Create template to Json-ld
         
    "connection_id":conn_id,
    "filter":{
@@ -341,7 +350,8 @@ def create_credential(conn_id, self):
     
 
 def get_record(recipient_identifier, cred_ex_id):
-    #Check if connection exist betweeen issuer and recipient
+#   This function get credential from Hyperledger Aries
+
     
     recipient_identifier = str(recipient_identifier)
     
@@ -371,33 +381,35 @@ def get_record(recipient_identifier, cred_ex_id):
     
 
 def get_badge_list(issuer_email, badgeclass, badgeclass_id):
-    
+#   This function create data in table issuer_badgeinstance in auxiliary database sqlite from Hyperledger Aries
+
     from django.db import connections,transaction
     from badgeuser.models import BadgeUser
     from issuer.models import BadgeInstance
     
-    id = badgeclass_id
+    id = str(badgeclass_id)
     
+#   Create cursos to database sqlite
     cursor = connections['sqlite'].cursor()
     
-    #Check if connection exist betweeen issuer and recipient
     connection = None
     badges = None
     
-    issuer_email = str(issuer_email)
-         
+#   Check if connection exist betweeen issuer and recipient   
+    issuer_email = str(issuer_email)        
     token_issuer = BadgeUser.objects.get(email=issuer_email)  
     
-#    clean = BadgeInstance.objects.using('sqlite')
-    
-    clean = BadgeInstance.objects.using('sqlite').filter(badgeclass_id=id).count()
+      
+#   Clean data in table issuer_badgeinstance in auxiliary database sqlite
+    query_delete = "DELETE FROM issuer_badgeinstance WHERE badgeclass_id=5;"
+    cursor.execute(query_delete)
+    transaction.commit()
 
-    
+#   Get data from Hyperledger Aries    
     token = token_issuer.token
     
     header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/ld+json'}
     
-
     try:
         response = requests.get(
             endpoint
@@ -409,7 +421,8 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
         connection = response.json()
         
         i = 0
-        
+
+#   Include data in table issuer_badgeinstance in auxiliary database sqlite       
         for conn in connection['results']:
             created_at=connection['results'][i]['cred_ex_record']['created_at'] 
             old_json=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['old_json'])
@@ -443,12 +456,7 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
             cursor.execute(query)
             transaction.commit()
 
-            i += 1
-        
-        tmp = i
-        
-        # teste = BadgeInstance.objects.using('sqlite').raw(query)
-        
+            i += 1   
     except:
         raise    
     finally:             

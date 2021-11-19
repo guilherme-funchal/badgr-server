@@ -35,7 +35,7 @@ services:
       - "MYSQL_HOST=db"
       - "MYSQL_ROOT_PASSWORD=password"
     expose:
-      - "3306"
+      - "8083:3306"
     networks:
       - badgr
 
