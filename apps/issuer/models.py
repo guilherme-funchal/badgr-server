@@ -1027,9 +1027,9 @@ class BadgeInstance(BaseAuditedModel,
         if not revocation_reason:
             raise ValidationError("revocation_reason is required")
 
-        self.revoked = True
-        self.revocation_reason = revocation_reason
-        self.image.delete()
+        # self.revoked = True
+        # self.revocation_reason = revocation_reason
+        # self.image.delete()
         self.save()
 
     def notify_earner(self, badgr_app=None, renotify=False):

@@ -344,8 +344,7 @@ def create_credential(conn_id, self):
             headers=header
         )
         
-        response.raise_for_status()
-        
+        response.raise_for_status()     
         connection = response.json()
                     
     except:
@@ -406,10 +405,17 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
     # badges = BadgeInstance.objects.filter(badgeclass_id=badgeclass_id).delete()
       
 #   Clean data in table issuer_badgeinstance in database
+    query_delete = "DELETE FROM issuer_badgeinstanceextension WHERE name='extensions:recipientProfile';"
+    
+    cursor.execute(query_delete)
+    transaction.commit()
+
+#   Clean data in table issuer_badgeinstance in database
     query_delete = "DELETE FROM issuer_badgeinstance WHERE badgeclass_id=badgeclass_id;"
     cursor.execute(query_delete)
     transaction.commit()
 
+    
 #   Get data from Hyperledger Aries    
     token = token_issuer.token
     
@@ -469,4 +475,37 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
         return badges
     
     
+    
+def remove_badge(entity_id, issuer_email):
+    from django.db import connections,transaction
+    from badgeuser.models import BadgeUser
+    from issuer.models import BadgeInstance
+    
+    connection = None
+    
+    issuer_email = str(issuer_email)        
+    token_issuer = BadgeUser.objects.get(email=issuer_email)
+    cred = BadgeInstance.objects.get(entity_id=entity_id)
+    cred_ex_id = str(cred.cred_ex_id)
+    
+    token = str(token_issuer.token)
+    
+    header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/ld+json'}
+    
+    
+    try:
+        response = requests.delete(
+            endpoint
+            + "/issue-credential-2.0/records/" + cred_ex_id,
+            headers=header
+        )
+        
+        response.raise_for_status()
+        connection = response.json()
+                  
+    except:
+        raise    
+    finally:             
+        return
+                  
     

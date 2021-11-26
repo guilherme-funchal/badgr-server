@@ -403,18 +403,10 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
     valid_scopes = ["rw:issuer", "rw:issuer:*"]
 
     def get_queryset(self, request=None, **kwargs):
-        # from django.db import connections,transaction
-        # cursor = connections['sqlite'].cursor()
-        # query = "SELECT * from issuer_badgeinstance WHERE badgeclass_id=5"
-        # cursor.execute(query)
-        # val2 = cursor.execute(query)
-        # queryset1 = cursor.fetchone()
         
         badgeclass = self.get_object(request, **kwargs)
 
         queryset = BadgeInstance.objects.filter(badgeclass=badgeclass)
-        
-        # queryset = BadgeInstance.objects.using('sqlite').filter(badgeclass_id=5)
                        
         recipients = request.query_params.getlist('recipient', None)
         
@@ -607,6 +599,12 @@ class BadgeInstanceDetail(BaseEntityDetailView):
     def delete(self, request, **kwargs):
         # verify the user has permission to the assertion
         assertion = self.get_object(request, **kwargs)
+        
+        #Hyperledger Aries
+        entity_id = kwargs['slug']
+        issuer_email = self.request._user.email
+        val = remove_badge(entity_id, issuer_email)
+        
         if not self.has_object_permissions(request, assertion):
             return Response(status=HTTP_404_NOT_FOUND)
 

@@ -160,7 +160,8 @@ class CollectionBadgesSerializerV1(serializers.ListSerializer):
 
 
 class CollectionBadgeSerializerV1(serializers.ModelSerializer):
-    id = serializers.RelatedField(queryset=BadgeInstance.objects.all())
+#   id = serializers.RelatedField(queryset=BadgeInstance.objects.all())
+    id = serializers.RelatedField(queryset=BadgeInstance.objects.using('sqlite').all())
     collection = serializers.RelatedField(queryset=BackpackCollection.objects.all(), write_only=True, required=False)
 
     class Meta:
