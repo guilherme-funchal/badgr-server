@@ -16,6 +16,7 @@ from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from oauth2_provider.models import Application
 from rest_framework.authtoken.models import Token
+from .aries_rest_user import *
 
 from badgeuser.tasks import process_post_recipient_id_deletion, process_post_recipient_id_verification_change
 from entity.models import BaseVersionedEntity
@@ -538,6 +539,7 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
                 
         #Create subwallet in Hyperledger Aries
         
+    
         if self.wallet_id == 'False':         
                 token_user = create_subwallet(self.email)
                 self.token = token_user["token"]

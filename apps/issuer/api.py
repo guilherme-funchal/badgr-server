@@ -403,11 +403,21 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
     valid_scopes = ["rw:issuer", "rw:issuer:*"]
 
     def get_queryset(self, request=None, **kwargs):
+        # from django.db import connections,transaction
+        # cursor = connections['sqlite'].cursor()
+        # query = "SELECT * from issuer_badgeinstance WHERE badgeclass_id=5"
+        # cursor.execute(query)
+        # val2 = cursor.execute(query)
+        # queryset1 = cursor.fetchone()
+        
         badgeclass = self.get_object(request, **kwargs)
-       
-        queryset = BadgeInstance.objects.filter(badgeclass=badgeclass)
 
+        queryset = BadgeInstance.objects.filter(badgeclass=badgeclass)
+        
+        # queryset = BadgeInstance.objects.using('sqlite').filter(badgeclass_id=5)
+                       
         recipients = request.query_params.getlist('recipient', None)
+        
         if recipients:
             queryset = queryset.filter(recipient_identifier__in=recipients)
         if request.query_params.get('include_expired', '').lower() not in ['1', 'true']:
@@ -461,10 +471,11 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
     # Get list of badges from Hyperledger Aries and cache in sqlite database    
         badgeclass_id = badgeclass.id
         issuer_email = self.request._user.email
+    
+    #Hyperledger Aries
         val = get_badge_list(issuer_email, badgeclass, badgeclass_id)
         
-        val = super(BadgeInstanceList, self).get(request, **kwargs)
-        return val
+        return super(BadgeInstanceList, self).get(request, **kwargs)
 
 
     @apispec_post_operation('Assertion',

@@ -966,6 +966,7 @@ class BadgeInstance(BaseAuditedModel,
         
         conn_id = get_connection_id(recipient_identifier, created_by)
         
+        
         if self.cred_ex_id is None:
             status = create_credential(conn_id, self)
             cred_ex_id = status["cred_ex_id"]

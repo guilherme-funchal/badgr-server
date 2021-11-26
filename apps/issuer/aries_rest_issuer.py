@@ -225,7 +225,9 @@ def get_connection_id(recipient_identifier, email_issuer):
 
 def create_credential(conn_id, self):
 #   This function get credential in Json-ld format in Hyperledger Aries from Badge server
-   
+    teste = None
+    connection = None
+    
     created_by = self.created_by.email
     
     from badgeuser.models import BadgeUser
@@ -250,21 +252,22 @@ def create_credential(conn_id, self):
     token = str(issuer_user.token) 
     header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/json'}
     creator = str(self.created_by)
-    connection = None
-    created_by_id = self.created_by_id
-    salt = self.salt
-    entity_id = self.entity_id
-    entity_version = self.entity_version
-    original_json = self.original_json
-    issued_on = issuancedate
-    recipient_type = self.recipient_type
-    hashed = self.hashed
-    old_json = self.old_json
-    slug = self.slug
-    source_url = self.source_url
-    user_id = self.user_id
-    source = self.source
-    expires_at = self.expires_at
+    created_by_id = str(self.created_by_id)
+    issuer_id = str(self.issuer_id)
+    salt = str(self.salt)
+    entity_id = str(self.entity_id)
+    entity_version = str(self.entity_version)
+    original_json = str(self.original_json)
+    issued_on = str(issuancedate)
+    recipient_type = str(self.recipient_type)
+    hashed = str(self.hashed)
+    old_json = None
+    slug = None
+    source_url = str(self.source_url)
+    user_id = str(self.user_id)
+    expires_at = str(self.expires_at)
+    source = str(self.source)
+    expires_at = str(self.expires_at)
     
     json_model_rest = {
  
@@ -312,6 +315,7 @@ def create_credential(conn_id, self):
                 "id":issuer_id,
                 "name":issuer_name,
                 "created_by_id":created_by_id,
+                "issuer_id":issuer_id,
                 "creator":creator,
                 "url":issuer_url,
                 "email":issuer_email,
@@ -320,7 +324,7 @@ def create_credential(conn_id, self):
             },
             "recipient":{
                 "name": recipient_name,
-                "hashed":False,
+                "hashed": True,
                 "identity":recipient_email,
                 "type":"email",
                 "user_id": user_id
@@ -341,6 +345,7 @@ def create_credential(conn_id, self):
         )
         
         response.raise_for_status()
+        
         connection = response.json()
                     
     except:
@@ -390,8 +395,7 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
     id = str(badgeclass_id)
     
 #   Create cursos to database sqlite
-    cursor = connections['sqlite'].cursor()
-    
+    cursor = connections['default'].cursor()  
     connection = None
     badges = None
     
@@ -399,9 +403,10 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
     issuer_email = str(issuer_email)        
     token_issuer = BadgeUser.objects.get(email=issuer_email)  
     
+    # badges = BadgeInstance.objects.filter(badgeclass_id=badgeclass_id).delete()
       
-#   Clean data in table issuer_badgeinstance in auxiliary database sqlite
-    query_delete = "DELETE FROM issuer_badgeinstance WHERE badgeclass_id=5;"
+#   Clean data in table issuer_badgeinstance in database
+    query_delete = "DELETE FROM issuer_badgeinstance WHERE badgeclass_id=badgeclass_id;"
     cursor.execute(query_delete)
     transaction.commit()
 
@@ -426,13 +431,14 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
         for conn in connection['results']:
             created_at=connection['results'][i]['cred_ex_record']['created_at'] 
             old_json=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['old_json'])
+            
             slug=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['slug'])
-            image=connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['image']
-            revoked='False'
-            revocation_reason='None'
+            image=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['image'])
+            revoked='0'
+            revocation_reason='NULL'
             badgeclass_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_proposal']['ld_proof']['credential']['badge']['badge_class_id'])
             created_by_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['issuer']['created_by_id'])
-            issuer_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['issuer']['created_by_id'])
+            issuer_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['issuer']['issuer_id'])
             recipient_identifier=connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['recipient']['identity']
             acceptance='Accepted'
             salt=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['salt'])
@@ -445,18 +451,18 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
             issued_on=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['issued_on'])
             recipient_type=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['recipient_type'])
             updated_at=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['issued_on'])
-            updated_by_id= 'None'
+            updated_by_id= 'NULL'
             hashed=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['hashed'])
-            expires_at='None'
+            expires_at=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['badge']['expires_at'])
             user_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['recipient']['user_id'])
             cred_ex_id=connection['results'][i]['cred_ex_record']['cred_ex_id']
         
-            query = "INSERT INTO issuer_badgeinstance (created_at, old_json, slug, image, revoked, revocation_reason, badgeclass_id, created_by_id, issuer_id, recipient_identifier, acceptance, salt, narrative, entity_id, entity_version, source, source_url, original_json, issued_on, recipient_type, updated_at, updated_by_id, hashed, expires_at, user_id, cred_ex_id) values('"+created_at+"','"+old_json+"','"+slug+"','"+image+"','"+revoked+"','"+revocation_reason+"','"+badgeclass_id+"','"+created_by_id+"','"+issuer_id+"','"+recipient_identifier+"','"+acceptance+"','"+salt+"','"+narrative+"','"+entity_id+"','"+entity_version+"','"+source+"','','"+original_json+"','"+issued_on+"','"+recipient_type+"','"+updated_at+"','"+updated_by_id+"','"+hashed+"','"+expires_at+"','"+user_id+"','"+cred_ex_id+"')"
-                
+        #Insert data inside of table issuer_badgeinstance from Hyperledger Aries
+            query = "INSERT INTO `badgr`.`issuer_badgeinstance` (`created_at`, `old_json`, `image`, `revoked`, `badgeclass_id`, `created_by_id`, `issuer_id`, `recipient_identifier`, `acceptance`, `salt`, `entity_id`, `entity_version`, `source`, `issued_on`, `recipient_type`, `updated_at`, `hashed`, `expires_at`, `user_id`, `cred_ex_id`) VALUES ('"+created_at+"', '\"\"', '"+image+"', '"+revoked+"', '"+badgeclass_id+"', '"+created_by_id+"', '"+issuer_id+"', '"+recipient_identifier+"', '"+acceptance+"', '"+salt+"', '"+entity_id+"', '"+entity_version+"', '"+source+"', '"+issued_on+"', '"+recipient_type+"', '"+updated_at+"', '"+hashed+"', '"+expires_at+"', '"+user_id+"', '"+cred_ex_id+"')"                        
             cursor.execute(query)
             transaction.commit()
-
             i += 1   
+            
     except:
         raise    
     finally:             
