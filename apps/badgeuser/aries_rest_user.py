@@ -19,7 +19,7 @@ wallet_pass = settings.REST_ARIES['WALLET_PASS']
 serviceEndpoint = settings.REST_ARIES['SERVICEENDPOINT']
 endpoint = host + ":" + port
 
-def create_subwallet(email_user):
+def create_subwallet(first_name, last_name, email_user):
     
 #Create subwallet in Hyperledger Aries with email adress   
     json_model = {
@@ -27,7 +27,7 @@ def create_subwallet(email_user):
     "label": email_user,
     "wallet_dispatch_type": "default",
     "wallet_key": wallet_pass,
-    "wallet_name": wallet_prefix + "." + email_user,
+    "wallet_name": wallet_prefix + "." + first_name + last_name,
     "wallet_type": "indy",
     "wallet_webhook_urls": [wallet_webhook_urls]
     }

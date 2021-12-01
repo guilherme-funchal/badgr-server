@@ -541,7 +541,7 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
         
     
         if self.wallet_id == 'False':         
-                token_user = create_subwallet(self.email)
+                token_user = create_subwallet(self.first_name, self.last_name, self.email)
                 self.token = token_user["token"]
                 self.wallet_id = token_user["wallet_id"]
                 did_user = create_local_did(self.token)

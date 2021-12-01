@@ -2,6 +2,7 @@ import io
 import datetime
 import urllib.request, urllib.parse, urllib.error
 
+
 import dateutil
 import re
 import uuid
@@ -1027,9 +1028,15 @@ class BadgeInstance(BaseAuditedModel,
         if not revocation_reason:
             raise ValidationError("revocation_reason is required")
 
-        # self.revoked = True
-        # self.revocation_reason = revocation_reason
-        # self.image.delete()
+        # #Hyperledger Aries
+        # entity_id = kwargs['slug']
+        # issuer_email = self.request._user.email
+        # val = remove_badge(entity_id, issuer_email)
+        
+        self.revoked = True
+        self.revocation_reason = revocation_reason
+        self.image.delete()
+        
         self.save()
 
     def notify_earner(self, badgr_app=None, renotify=False):

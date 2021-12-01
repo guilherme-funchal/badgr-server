@@ -1,5 +1,6 @@
 # encoding: utf-8
 
+from .aries_rest_issuer import *
 
 import badgrlog
 import datetime
@@ -87,6 +88,10 @@ class BackpackAssertionList(BaseEntityListView):
         if 'issuer' in expands:
             mykwargs['expands'].append('issuer')
 
+    #Hyperledger Aries integration
+        recipient_email = self.request._user.email
+        val = get_badge_list(recipient_email)
+        
         return super(BackpackAssertionList, self).get(request, **mykwargs)
 
     @apispec_post_operation('Assertion',

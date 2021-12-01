@@ -403,13 +403,11 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
     valid_scopes = ["rw:issuer", "rw:issuer:*"]
 
     def get_queryset(self, request=None, **kwargs):
-        
         badgeclass = self.get_object(request, **kwargs)
-
+       
         queryset = BadgeInstance.objects.filter(badgeclass=badgeclass)
-                       
+
         recipients = request.query_params.getlist('recipient', None)
-        
         if recipients:
             queryset = queryset.filter(recipient_identifier__in=recipients)
         if request.query_params.get('include_expired', '').lower() not in ['1', 'true']:
@@ -459,15 +457,12 @@ class BadgeInstanceList(UncachedPaginatedViewMixin, VersionedObjectMixin, BaseEn
     def get(self, request, **kwargs):
         # verify the user has permission to the badgeclass
         badgeclass = self.get_object(request, **kwargs)
-    
-    # Get list of badges from Hyperledger Aries and cache in sqlite database    
-        badgeclass_id = badgeclass.id
-        issuer_email = self.request._user.email
-    
-    #Hyperledger Aries
-        val = get_badge_list(issuer_email, badgeclass, badgeclass_id)
         
-        return super(BadgeInstanceList, self).get(request, **kwargs)
+        issuer_email = self.request._user.email
+#       val = get_badge_list(issuer_email, badgeclass)
+        
+        val = super(BadgeInstanceList, self).get(request, **kwargs)
+        return val
 
 
     @apispec_post_operation('Assertion',
@@ -599,12 +594,6 @@ class BadgeInstanceDetail(BaseEntityDetailView):
     def delete(self, request, **kwargs):
         # verify the user has permission to the assertion
         assertion = self.get_object(request, **kwargs)
-        
-        #Hyperledger Aries
-        # entity_id = kwargs['slug']
-        # issuer_email = self.request._user.email
-        # val = remove_badge(entity_id, issuer_email)
-        
         if not self.has_object_permissions(request, assertion):
             return Response(status=HTTP_404_NOT_FOUND)
 
@@ -612,10 +601,10 @@ class BadgeInstanceDetail(BaseEntityDetailView):
         if not revocation_reason:
             raise ValidationError({'revocation_reason': "This field is required"})
 
-        # try:
-        #     assertion.revoke(revocation_reason)
-        # except DjangoValidationError as e:
-        #     raise ValidationError(e.message)
+        try:
+            assertion.revoke(revocation_reason)
+        except DjangoValidationError as e:
+            raise ValidationError(e.message)
 
         serializer = self.get_serializer_class()(assertion, context={'request': request})
 
