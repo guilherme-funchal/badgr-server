@@ -11,7 +11,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db.models.query import QuerySet
 from django.urls import reverse
-
+from django.core.cache import cache
 
 import requests
 #import os.path
@@ -120,5 +120,6 @@ def get_badge_list(recipient_email):
         
         # qs = QuerySet(model=BadgeInstance, query=qs.query)
         # val = qs.count()
+        cache.clear()
         return credentials  
     
