@@ -546,10 +546,11 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
                 self.wallet_id = token_user["wallet_id"]
                 did_user = create_local_did(self.token)
                 self.did = did_user
+              
                 
-#        if self.credential_issuer == True:
-#                issuer_did = create_issuer_did(self.token)
-#                self.issuer_did = issuer_did
+        # if self.credential_issuer == True:
+        #         issuer_did = create_issuer_did(self.token)
+        #         self.issuer_did = issuer_did
                                 
         return super(BadgeUser, self).save(*args, **kwargs)
 

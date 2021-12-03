@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.urls import reverse
+from apps.mainsite.utils import backoff_cache_key
 
 
 import requests
@@ -29,7 +30,6 @@ service_endpoint = settings.REST_ARIES['SERVICEENDPOINT']
 endpoint = host + ":" + port
 
 
-
 def create_connection(recipient_identifier, created_by): 
 #   This function create connecions in Hyperledger Aries between  users
 
@@ -41,13 +41,14 @@ def create_connection(recipient_identifier, created_by):
     token_creator = token_creator.token
     connection_exist = None
 
-    connection_exist = check_connection(created_by, token_recipient)
+    connection_exist = check_connection(recipient_identifier, token_creator)
     
-    if  connection_exist == False:       
-        connection = create_invite(created_by, token_creator) 
+    if  connection_exist == False:
+         
+        connection = create_invite(created_by, token_recipient)
         id = connection["invitation"]["@id"]
         recipientKeys = connection["invitation"]["recipientKeys"]
-        connection = accept_invite(created_by, token_recipient, id, recipientKeys)
+        connection = accept_invite(recipient_identifier, token_creator, id, recipientKeys)
     else:
         logging.basicConfig(level=logging.INFO)
         logging.info("User exist")      
@@ -90,8 +91,7 @@ def create_invite(created_by, token_creator):
         "my_label": created_by
     }
     
-    token_user = token_creator
-    header = {'Authorization': 'Bearer ' + token_user}
+    header = {'Authorization': 'Bearer ' + token_creator}
     did = None
     connection = None    
       
@@ -105,10 +105,6 @@ def create_invite(created_by, token_creator):
         
         response.raise_for_status()
         connection = response.json()
-        
-        id = connection["invitation"]["@id"]
-        
-        recipientKeys = connection["invitation"]["recipientKeys"] 
                    
     except:
         raise    
@@ -116,7 +112,7 @@ def create_invite(created_by, token_creator):
         return connection
 
 
-def accept_invite(created_by, token_recipient, id, recipientKeys):
+def accept_invite(created_by, token_creator, id, recipientKeys):
 #   This function create connections in Hyperledger Aries between users from invites 
 
     service_endpoint = settings.REST_ARIES['SERVICEENDPOINT']
@@ -124,23 +120,24 @@ def accept_invite(created_by, token_recipient, id, recipientKeys):
      
     json_model = {
             "@id": id,
+            "their_label": created_by,
             "recipientKeys": recipientKeys, 
             "serviceEndpoint": service_endpoint             
     }
     
-    token_user = token_recipient
+    token_user = token_creator
     
-    header = {'Authorization': 'Bearer ' + token_user}
+    header = {'Authorization': 'Bearer ' + token_user, 'accept': 'application/json', 'Content-Type': 'application/ld+json'}
     
     did = None
     connection = None    
     
-    alias = created_by
+    url = "/connections/receive-invitation?alias=" + created_by
       
     try:
         response = requests.post(
             endpoint
-            + "/connections/receive-invitation?alias=" + alias,
+            + url,
             json.dumps(json_model),
             headers=header
         )
@@ -151,7 +148,7 @@ def accept_invite(created_by, token_recipient, id, recipientKeys):
     except:
         raise    
     finally:             
-        return did
+        return connection
 
     
 def create_issuer_did(token_user):
@@ -182,9 +179,9 @@ def create_issuer_did(token_user):
         
         response.raise_for_status()
         connection = response.json()
-        
         did = connection["result"]["did"]
-                    
+        did = did.replace("did:key:", "")
+              
     except:
         raise    
     finally:             
@@ -228,7 +225,6 @@ def create_credential(conn_id, self):
 #   This function get credential in Json-ld format in Hyperledger Aries from Badge server
     teste = None
     connection = None
-    
     created_by = self.created_by.email
     
     from badgeuser.models import BadgeUser
@@ -270,9 +266,10 @@ def create_credential(conn_id, self):
     source = str(self.source)
     expires_at = str(self.expires_at)
     issuancedate = issuancedate.replace('+00:00', 'Z')
+    issuancedate = str(issuancedate)
     
     json_model_rest = {
-       "connection_id":"2c05893e-c110-43bf-a3de-d510292b36bf",
+       "connection_id":conn_id,
    "filter":{
       "ld_proof":{
 				 "options":{
@@ -281,8 +278,8 @@ def create_credential(conn_id, self):
          "credential":{
             "@context":["https://www.w3.org/2018/credentials/v1","https://w3id.org/openbadges/v2" ], 
             "@protected": False,
-					 "issuanceDate":"2021-11-30T13:59:47.491Z",
-           "type": ["VerifiableCredential","PermanentResident", "Assertion"],
+			"issuanceDate":issuancedate,
+            "type": ["VerifiableCredential","PermanentResident", "Assertion"],
             "issuer":"did:key:" + issuer_did,
 					  "credentialSubject":{
 					  },
@@ -401,13 +398,13 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
     
     # badges = BadgeInstance.objects.filter(badgeclass_id=badgeclass_id).delete()
       
-#   Clean data in table issuer_badgeinstance in database
-    query_delete = "DELETE FROM issuer_badgeinstanceextension WHERE name='extensions:recipientProfile';"
-    
+#   Clean data in table issuer_badgeinstance in database    
+    query_delete = "DELETE FROM issuer_badgeinstanceextension WHERE name='extensions:recipientProfile';"    
     cursor.execute(query_delete)
     transaction.commit()
-
+    
 #   Clean data in table issuer_badgeinstance in database
+    badges = BadgeInstance.objects.filter(badgeclass_id=badgeclass_id).delete()   
     query_delete = "DELETE FROM issuer_badgeinstance WHERE badgeclass_id=badgeclass_id;"
     cursor.execute(query_delete)
     transaction.commit()
@@ -477,6 +474,11 @@ def remove_badge(entity_id, issuer_email):
     from badgeuser.models import BadgeUser
     from issuer.models import BadgeInstance
     
+    #   Create cursos to database sqlite
+    cursor = connections['default'].cursor()  
+    connection = None
+    badges = None
+    
     connection = None
     
     issuer_email = str(issuer_email)        
@@ -504,4 +506,48 @@ def remove_badge(entity_id, issuer_email):
     finally:             
         return
                   
+
+def get_public_assertion(entity_id):
+    from issuer.models import Issuer
+    from badgeuser.models import BadgeUser
+    from backpack.aries_rest_issuer import get_badge_list
     
+    entity_id = str(entity_id)
+    teste  = None
+    
+    issuers = Issuer.objects.all()
+    
+    for issuer in issuers:
+        val = issuer
+        email = issuer.email
+        entity_id_issuer = issuer.entity_id
+        token_issuer = BadgeUser.objects.get(email=email)  
+        token = token_issuer.token
+        
+        header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/ld+json'}
+              
+
+        response = requests.get(
+            endpoint
+            + "/issue-credential-2.0/records",
+            headers=header
+        )
+            
+        response.raise_for_status()
+        connections = response.json()
+            
+        i=0
+            
+        for connection in connections['results']:
+            cred_ex_id = connections['results'][i]['cred_ex_record']['cred_ex_id']
+            
+            badge = connections['results'][i]['cred_ex_record']['by_format']['cred_proposal']['ld_proof']['credential']['badge']['id']
+                          
+            if badge == entity_id:
+                teste = True
+                recipient_identifier=connections['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['recipient']['identity']
+                get_badge_list(recipient_identifier)
+                break
+            else:
+                teste = False
+            i+=1

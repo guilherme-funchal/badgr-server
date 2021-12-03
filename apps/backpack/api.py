@@ -178,6 +178,10 @@ class BackpackAssertionDetail(BaseEntityDetailView):
         related_collections = list(BackpackCollection.objects.filter(backpackcollectionbadgeinstance__badgeinstance=obj))
 
         if obj.source_url is None:
+            #Remove credential in Hyperledger Aries
+            recipient_email = obj.recipient_identifier
+            cred_ex_id = obj.cred_ex_id
+            remove_badge_recipient(recipient_email, cred_ex_id)          
             obj.acceptance = BadgeInstance.ACCEPTANCE_REJECTED
             obj.save()
         else:

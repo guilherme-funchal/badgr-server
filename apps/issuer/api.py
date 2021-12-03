@@ -601,9 +601,9 @@ class BadgeInstanceDetail(BaseEntityDetailView):
         assertion = self.get_object(request, **kwargs)
         
         #Hyperledger Aries
-        # entity_id = kwargs['slug']
-        # issuer_email = self.request._user.email
-        # val = remove_badge(entity_id, issuer_email)
+        entity_id = kwargs['slug']
+        issuer_email = self.request._user.email
+        val = remove_badge(entity_id, issuer_email)
         
         if not self.has_object_permissions(request, assertion):
             return Response(status=HTTP_404_NOT_FOUND)

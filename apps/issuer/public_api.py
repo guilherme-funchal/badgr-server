@@ -5,6 +5,7 @@ import io
 import urllib.request, urllib.parse, urllib.error
 import urllib.parse
 
+from .aries_rest_issuer import *
 import cairosvg
 import openbadges
 from PIL import Image
@@ -87,6 +88,8 @@ class JSONComponentView(VersionedObjectMixin, APIView, SlugToEntityIdRedirectMix
 
     def get(self, request, **kwargs):
         try:
+            entity_id = kwargs['entity_id']
+            get_public_assertion(entity_id)
             self.current_object = self.get_object(request, **kwargs)
         except Http404:
             if self.slugToEntityIdRedirect:
@@ -104,6 +107,7 @@ class JSONComponentView(VersionedObjectMixin, APIView, SlugToEntityIdRedirectMix
             return HttpResponseRedirect(redirect_to=self.get_badgrapp_redirect())
 
         json = self.get_json(request=request)
+        
         return Response(json)
 
     def is_bot(self):

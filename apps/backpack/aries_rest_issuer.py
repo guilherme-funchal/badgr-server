@@ -40,14 +40,7 @@ def get_badge_list(recipient_email):
     recipient_email = str(recipient_email)        
     token_issuer = BadgeUser.objects.get(email=recipient_email)  
     token = token_issuer.token
-    
     badges = BadgeInstance.objects.filter(user_id=token_issuer.id).delete()
-    
-    # query_delete = "DELETE FROM issuer_badgeinstance WHERE user_id=token_issuer.id;"
-    # cursor.execute(query_delete)
-    # transaction.commit()
-    
-    
     credentials = None
     json_model_rest = {}
     
@@ -101,8 +94,7 @@ def get_badge_list(recipient_email):
             expires_at=str(credentials['results'][i]['cred_value']['badge']['expires'])
             user_id=str(credentials['results'][i]['cred_value']['recipient']['uid'])
               
-            #Insert data inside of table issuer_badgeinstance from Hyperledger Aries
-            
+            #Insert data inside of table issuer_badgeinstance from Hyperledger Aries           
             query = "INSERT INTO `badgr`.`issuer_badgeinstance` (`created_at`, `old_json`, `image`, `revoked`, `badgeclass_id`, `created_by_id`, `issuer_id`, `recipient_identifier`, `acceptance`, `salt`, `entity_id`, `entity_version`, `source`, `issued_on`, `recipient_type`, `updated_at`, `hashed`, `expires_at`, `user_id`, `cred_ex_id`) VALUES ('"+created_at+"', '\"\"', '"+image+"', '"+revoked+"', '"+badgeclass_id+"', '"+created_by_id+"', '"+issuer_id+"', '"+recipient_identifier+"', '"+acceptance+"', '"+salt+"', '"+entity_id+"', '"+entity_version+"', '"+source+"', '"+issued_on+"', '"+recipient_type+"', '"+updated_at+"', '"+hashed+"', '"+expires_at+"', '"+user_id+"', '"+cred_ex_id+"')"                        
             cursor.execute(query)
             transaction.commit()  
@@ -112,14 +104,38 @@ def get_badge_list(recipient_email):
     finally:
         
         badges = BadgeInstance.objects.filter(user_id=token_issuer.id).update(acceptance="Accepted")
-
-
-        qs = BadgeInstance.objects.all()        
-        val = qs.count()
-        
-        
-        # qs = QuerySet(model=BadgeInstance, query=qs.query)
-        # val = qs.count()
         cache.clear()
         return credentials  
     
+    
+def remove_badge_recipient(recipient_email, cred_ex_id):
+    from django.db import connections,transaction
+    from badgeuser.models import BadgeUser
+    from issuer.models import BadgeInstance
+    
+    connection = None
+    
+    recipient_email = str(recipient_email)        
+    token_issuer = BadgeUser.objects.get(email=recipient_email)    
+    token = str(token_issuer.token)
+    cred_ex_id = str(cred_ex_id)
+    
+    
+    header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/ld+json'}
+    
+    
+    try:
+        response = requests.delete(
+            endpoint
+            + "/credential/w3c/" + cred_ex_id,
+            headers=header
+        )
+        
+        response.raise_for_status()
+        connection = response.json()
+                  
+    except:
+        raise    
+    finally:             
+        return
+
