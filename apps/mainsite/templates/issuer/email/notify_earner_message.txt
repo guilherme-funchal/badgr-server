@@ -1,5 +1,5 @@
 ************************************
-Congratulations, you earned a badge!
+Parabéns, você ganhou um badge!
 ************************************
 
 {{ badge_name }}
@@ -18,40 +18,40 @@ This badge was issued by:
 Download
 ----------
 
-Save this badge image for your records or to upload to any Open Badges-compatible service:
+Salve esta imagem do badge para seus registros ou para carregá-la em qualquer serviço compatível com o Open Badges:
 {{ download_url }}
 
 ----------
-Badge Storage and Access
+Badge arquivo e acesso
 ----------
 
-Wherever you take your badge, portable information about your achievement will
-be locked inside. You can use any Open Badges backpack service, but if you choose
-to create a {{ site_name }} ( {{ site_url }} ) account, your badges awarded from this issuer will
-be automatically added.
+Onde quer que você leve seu badge, as informações portáteis sobre sua conquista
+estão armazenados. Você pode usar qualquer serviço de backpack para Open Badges, mas se quiser
+para criar uma conta {{ site_name }} ( {{ site_url }} ), seus badges concedidos por este emissor
+serão adicionado automaticamente.
 {% if GDPR_INFO_URL %}
 -----------
-Know your Rights
+Conheça seus direitos
 -----------
-The issuer of this badge has provided {{ site_name }} with your email address and the
-data about your achievement contained in this badge.  If you have questions about this badge,
-please contact the issuer at {{ issuer_email }}. You may request a copy of your data, request
-removal of data about you, or request to have incorrect information updated. Learn more at
+O emissor deste badge forneceu {{ site_name }} com o seu endereço de e-mail e o
+dados sobre sua conquista contidos neste badge. Se você tiver dúvidas sobre este badge,
+entre em contato com o emissor em {{ issuer_email }}. Você pode solicitar uma cópia de seus dados, solicitar
+remoção de dados sobre você ou solicitação de atualização de informações incorretas. Saiba mais em
 {{ GDPR_INFO_URL }}
 {% endif %}
 -----------
-Open Badges: Portable Digital Credentials
+Open Badges: Credenciais portateis digitais
 -----------
 
-Open Badges let you take your credentials from the many places you learn,
-and combine them to tell a cohesive story about your learning.
+Os emblemas abertos permitem que você obtenha suas credenciais de muitos lugares que você aprende,
+e combiná-los para contar uma história coesa sobre o seu aprendizado.
 
-Learn more at http://openbadges.org
+Saiba mais em http://openbadges.org
 
+Cancelar inscrição: Se você não deseja ser notificado sobre quaisquer futuros prêmios de badges de
+este serviço, clique no link abaixo:
 
-Unsubscribe: If you wish not to be notified of any future badge awards from
-this service, click the link below:
 {{ unsubscribe_url }}
 
-{% if PRIVACY_POLICY_URL %}Privacy Policy: {{ PRIVACY_POLICY_URL }}{% endif %}
-{% if TERMS_OF_SERVICE_URL %}Terms of Service: {{ TERMS_OF_SERVICE_URL }}{% endif %}
+{% if PRIVACY_POLICY_URL %}Politica de privacidade: {{ PRIVACY_POLICY_URL }}{% endif %}
+{% if TERMS_OF_SERVICE_URL %}Termos of Serviço: {{ TERMS_OF_SERVICE_URL }}{% endif %}

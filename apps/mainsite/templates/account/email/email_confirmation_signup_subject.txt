@@ -1,4 +1,4 @@
 {% load i18n %}
 {% autoescape off %}
-{% blocktrans %}Confirm Your Badgr Account{% endblocktrans %}
+{% blocktrans %}Confirme sua conta{% endblocktrans %}
 {% endautoescape %}

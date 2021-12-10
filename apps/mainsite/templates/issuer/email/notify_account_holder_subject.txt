@@ -1,1 +1,1 @@
-{% if renotify %}Reminder: {% endif %}Congratulations, you earned a badge!
+{% if renotify %}Lembrete: {% endif %}Parabéns, você ganhou um emblema!

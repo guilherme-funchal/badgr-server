@@ -1,10 +1,10 @@
-Please verify your email address on Badgr,
+Por favor, verifique o seu endereço de e-mail no servidor,
 {{ email.email }}
 
-Confirm your email address to activate your Badgr account.
-Click the link below, or copy/paste it into your browser url bar.
+Confirme seu endereço de e-mail para ativar sua conta Badgr.
+Clique no link abaixo ou copie / cole na barra de url do seu navegador.
 
 {{ activate_url }}
 
-If you didn't make this request, you can safely ignore this email,
-and no action will be taken on your behalf.
+Se você não fez essa solicitação, pode ignorar este e-mail com segurança,
+e nenhuma ação será realizada em seu nome.

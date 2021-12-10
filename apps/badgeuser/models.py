@@ -234,8 +234,7 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
     
     wallet_id = models.CharField(max_length=255, blank=True, null=True, default=False)
 
-#   credential_issuer = models.BooleanField(default=False)
-    
+#   credential_issuer = models.BooleanField(default=False)   
 #   issuer_did = models.TextField(default=False)
     
     token = models.TextField(max_length=255, blank=True, null=True, default=False)
@@ -420,6 +419,12 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
         if len(primaries) > 0:
             return primaries[0].email
         return self.email
+    
+    # @property
+    # def primary_token(self):
+    #     token_user = create_subwallet(self.first_name, self.last_name, self.email)
+    #     self.token = token_user["token"]
+    #     return self.token
 
     @property
     def verified_emails(self):
@@ -540,7 +545,7 @@ class BadgeUser(BaseVersionedEntity, AbstractUser, cachemodel.CacheModel):
         #Create subwallet in Hyperledger Aries
         
     
-        if self.wallet_id == 'False':         
+        if self.wallet_id == False:         
                 token_user = create_subwallet(self.first_name, self.last_name, self.email)
                 self.token = token_user["token"]
                 self.wallet_id = token_user["wallet_id"]

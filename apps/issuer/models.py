@@ -255,7 +255,7 @@ class Issuer(ResizeUploadedImage,
         from badgeuser.models import BadgeUser
         
         #Hyperledger Aries integration
-        if self.issuer_did == 'False':
+        if self.issuer_did == False:
             token_user = BadgeUser.objects.get(email=self.email)
             issuer_did = create_issuer_did(token_user.token)            
             self.issuer_did = issuer_did

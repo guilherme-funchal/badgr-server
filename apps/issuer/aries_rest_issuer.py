@@ -12,7 +12,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.urls import reverse
 from apps.mainsite.utils import backoff_cache_key
-
+from django.core.cache import cache
 
 import requests
 #import os.path
@@ -398,17 +398,13 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
     
     # badges = BadgeInstance.objects.filter(badgeclass_id=badgeclass_id).delete()
       
-#   Clean data in table issuer_badgeinstance in database    
+#   Clean data in table issuer_badgeinstance in database
     query_delete = "DELETE FROM issuer_badgeinstanceextension WHERE name='extensions:recipientProfile';"    
     cursor.execute(query_delete)
     transaction.commit()
     
 #   Clean data in table issuer_badgeinstance in database
-    badges = BadgeInstance.objects.filter(badgeclass_id=badgeclass_id).delete()   
-    query_delete = "DELETE FROM issuer_badgeinstance WHERE badgeclass_id=badgeclass_id;"
-    cursor.execute(query_delete)
-    transaction.commit()
-
+    badges = BadgeInstance.objects.filter(badgeclass_id=id).delete()   
     
 #   Get data from Hyperledger Aries    
     token = token_issuer.token
@@ -456,15 +452,16 @@ def get_badge_list(issuer_email, badgeclass, badgeclass_id):
             user_id=str(connection['results'][i]['cred_ex_record']['by_format']['cred_offer']['ld_proof']['credential']['recipient']['uid'])
             cred_ex_id=connection['results'][i]['cred_ex_record']['cred_ex_id']
         
-        #Insert data inside of table issuer_badgeinstance from Hyperledger Aries
-            query = "INSERT INTO `badgr`.`issuer_badgeinstance` (`created_at`, `old_json`, `image`, `revoked`, `badgeclass_id`, `created_by_id`, `issuer_id`, `recipient_identifier`, `acceptance`, `salt`, `entity_id`, `entity_version`, `source`, `issued_on`, `recipient_type`, `updated_at`, `hashed`, `expires_at`, `user_id`, `cred_ex_id`) VALUES ('"+created_at+"', '\"\"', '"+image+"', '"+revoked+"', '"+badgeclass_id+"', '"+created_by_id+"', '"+issuer_id+"', '"+recipient_identifier+"', '"+acceptance+"', '"+salt+"', '"+entity_id+"', '"+entity_version+"', '"+source+"', '"+issued_on+"', '"+recipient_type+"', '"+updated_at+"', '"+hashed+"', '"+expires_at+"', '"+user_id+"', '"+cred_ex_id+"')"                        
-            cursor.execute(query)
-            transaction.commit()
+        #Insert data inside of table issuer_badgeinstance from Hyperledger Aries 
+            if badgeclass_id == id:
+                query = "INSERT INTO `badgr`.`issuer_badgeinstance` (`created_at`, `old_json`, `image`, `revoked`, `badgeclass_id`, `created_by_id`, `issuer_id`, `recipient_identifier`, `acceptance`, `salt`, `entity_id`, `entity_version`, `source`, `issued_on`, `recipient_type`, `updated_at`, `hashed`, `expires_at`, `user_id`, `cred_ex_id`) VALUES ('"+created_at+"', '\"\"', '"+image+"', '"+revoked+"', '"+badgeclass_id+"', '"+created_by_id+"', '"+issuer_id+"', '"+recipient_identifier+"', '"+acceptance+"', '"+salt+"', '"+entity_id+"', '"+entity_version+"', '"+source+"', '"+issued_on+"', '"+recipient_type+"', '"+updated_at+"', '"+hashed+"', '"+expires_at+"', '"+user_id+"', '"+cred_ex_id+"')"                        
+                cursor.execute(query)
+                transaction.commit()
             i += 1   
             
     except:
         raise    
-    finally:             
+    finally:           
         return badges
     
     

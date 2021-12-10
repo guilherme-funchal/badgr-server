@@ -23,8 +23,8 @@
                         <tr>
                           <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                             <div style="font-family:'Open Sans', Helvetica, Arial, sans-serif;font-size:32px;font-weight:bold;line-height:40px;text-align:center;color:#191919;">
-                              {% blocktrans with site_name=site.name site_domain=site.domain %}Please confirm your
-                              {{site_name}} account.{% endblocktrans %}
+                              {% blocktrans com  site_name=site.name site_domain=site.domain %}Por favor confirme
+                              {{site_name}} sua conta.{% endblocktrans %}
                             </div>
                           </td>
                         </tr>
@@ -44,5 +44,5 @@
 {% endblock %}
 {% block button_url %}{{ activate_url }}{% endblock %}
 {% block button_url_copy %}{{ activate_url }}{% endblock %}
-{% block button_text %}Confirm Now{% endblock %}
+{% block button_text %}Confirme já{% endblock %}
 {% block unsubscribe %}{% endblock %}
