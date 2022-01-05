@@ -4,6 +4,7 @@ RUN mkdir /badgr_server
 WORKDIR /badgr_server
 
 RUN apt-get update && apt-get upgrade -y
+
 RUN apt-get install -y default-libmysqlclient-dev \
                        python3-dev \
                        python3-cairo \
@@ -17,13 +18,6 @@ RUN pip install uwsgi
 RUN pip install ptvsd
 RUN pip install debugpy
 
-COPY sqlite3.db		/badgr_server
 COPY requirements.txt   /badgr_server
-COPY docker-entrypoint.sh /usr/local/bin/dockerinit
-COPY init_db.sql 	/badgr_server
-
-RUN chmod +x /usr/local/bin/dockerinit
-
 RUN pip install -r requirements.txt
 
-RUN cd /dev/shm/ && sqlite3 sqlite3.db < /badgr_server/init_db.sql
