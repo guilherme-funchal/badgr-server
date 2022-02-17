@@ -23,7 +23,7 @@
                         <tr>
                           <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                             <div style="font-family:'Open Sans', Helvetica, Arial, sans-serif;font-size:32px;font-weight:bold;line-height:40px;text-align:center;color:#191919;">
-                              Por favor, confirme seu endereço de e-mail adicional.
+                              Please confirm your additional email address.
                             </div>
                           </td>
                         </tr>
@@ -31,11 +31,11 @@
                           <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                             <div style="font-family:'Open Sans', Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#666666;">
                               {% blocktrans with site_name=site.name site_domain=site.domain %}
-                              Um {{ site_name }} usuário solicitou adicionar este e-mail à sua conta ou usá-lo em um
-                              aplicativo conectado. Uma vez
-                              confirmado, você pode enviar badge para o seu {{ site_name }} conta que foi emitida para
-                              este endereço ou usar recursos
-                              dentro de aplicativos conectados.
+                              A {{ site_name }} user has requested to add this email to their account or use it in a
+                              connected application. Once
+                              confirmed, you may upload badges to your {{ site_name }} account that have been issued to
+                              this address or use features
+                              within connected applications.
                               {% endblocktrans %}
                             </div>
                           </td>
@@ -61,4 +61,4 @@
 {% endblock %}
 {% block button_url %}{{ activate_url }}{% endblock %}
 {% block button_url_copy %}{{ activate_url }}{% endblock %}
-{% block button_text %}Confirme já{% endblock %}
+{% block button_text %}Confirm Now{% endblock %}

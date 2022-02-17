@@ -34,18 +34,20 @@ def get_badge_list(recipient_email):
     from django.db import connections,transaction
     from badgeuser.models import BadgeUser
     from issuer.models import BadgeInstance
-    
+      
     cursor = connections['default'].cursor()  
     
     recipient_email = str(recipient_email)        
     token_issuer = BadgeUser.objects.get(email=recipient_email)  
     token = token_issuer.token
-    badges = BadgeInstance.objects.filter(user_id=token_issuer.id).delete()
+    tmp = token_issuer.email
+#   badges = BadgeInstance.objects.filter(user_id=token_issuer.email).delete()
+    badges = BadgeInstance.objects.filter(recipient_identifier=token_issuer.email).delete()
     credentials = None
     json_model_rest = {}
     
     header = {'Authorization': 'Bearer ' + token, 'accept': 'application/json', 'Content-Type': 'application/json'}
-       
+    
     try:
         response = requests.post(
             endpoint

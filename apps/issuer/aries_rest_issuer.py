@@ -261,7 +261,7 @@ def create_credential(conn_id, self):
     old_json = None
     slug = None
     source_url = str(self.source_url)
-    user_id = self.user_id
+    user_id = self.created_by_id
     expires_at = str(self.expires_at)
     source = str(self.source)
     expires_at = str(self.expires_at)
@@ -379,7 +379,7 @@ def get_record(recipient_identifier, cred_ex_id):
     
 
 def get_badge_list(issuer_email, badgeclass, badgeclass_id):
-#   This function create data in table issuer_badgeinstance in auxiliary database sqlite from Hyperledger Aries
+#   This function create data in table issuer_badgeinstance in auxiliary database from Hyperledger Aries
 
     from django.db import connections,transaction
     from badgeuser.models import BadgeUser
